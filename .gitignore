@@ -1,0 +1,4 @@
+build
+assets/glsl
+SDK/*
+*.kdev4

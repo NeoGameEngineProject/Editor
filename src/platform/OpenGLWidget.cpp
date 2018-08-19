@@ -42,6 +42,5 @@ void OpenGLWidget::paintGL()
 	
 	assert(m_render != nullptr);
 	m_render->clear(1, 0, 1, 1);
-	bgfx::touch(0);
 	m_render->swapBuffers();
 }

@@ -7,6 +7,7 @@
 
 int main(int argc, char *argv[])
 {
+	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
     
 	QFile file(":/dark.qss");
@@ -14,12 +15,13 @@ int main(int argc, char *argv[])
 	QTextStream stream(&file);
 	a.setStyleSheet(stream.readAll());
 
-	
 	QSurfaceFormat format;
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CoreProfile);
+	format.setRenderableType(QSurfaceFormat::OpenGL);
+
 	QSurfaceFormat::setDefaultFormat(format);
     
 	MainWindow w;

@@ -5,6 +5,8 @@
 
 #ifdef __linux__
 #include <QtPlatformHeaders/QGLXNativeContext>
+#elif WIN32
+#include <QtPlatformHeaders/QWGLNativeContext>
 #endif
 
 using namespace Neo;
@@ -32,6 +34,9 @@ void OpenGLWidget::paintGL()
 #ifdef __linux__
 		auto context = QOpenGLContext::currentContext();
 		auto nativeContext = reinterpret_cast<QGLXNativeContext*>(context->nativeHandle().data());
+#elif WIN32
+		auto context = QOpenGLContext::currentContext();
+		auto nativeContext = reinterpret_cast<QWGLNativeContext*>(context->nativeHandle().data());
 #else
 #error Unsupported platform!
 #endif

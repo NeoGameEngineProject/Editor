@@ -18,6 +18,8 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
 	
+	void resetView();
+
 private:
 	Ui::MainWindow *ui;
 };

@@ -13,6 +13,7 @@ set(NO_TESTS TRUE)
 set(DISABLE_RENDER_THREAD TRUE)
 set(OpenGL_GL_PREFERENCE LEGACY)
 set(ENABLE_OPENGL_RENDERER TRUE)
+set(ENABLE_DUMMY_PLATFORM TRUE)
 
 add_subdirectory(SDK EXCLUDE_FROM_ALL)
 
@@ -24,10 +25,13 @@ file(GLOB_RECURSE UI src/*.ui)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt5Widgets CONFIG REQUIRED)
 find_package(Qt5OpenGL CONFIG REQUIRED)
 
-add_executable(NeoEditor WIN32 ${SOURCES} ${UI})
+add_executable(NeoEditor WIN32 ${SOURCES} ${UI} BreezeStyleSheets/breeze.qrc)
 target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL NeoEngine)
 target_include_directories(NeoEditor PUBLIC src)
+
+add_dependencies(NeoEditor build-shaders)

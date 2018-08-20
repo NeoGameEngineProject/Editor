@@ -26,6 +26,8 @@ protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);
 	virtual void paintGL();
+
+	PlatformRenderer* getRenderer() { return m_render.get(); }
 };
 
 }

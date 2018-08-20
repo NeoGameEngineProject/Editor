@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
     
-	QFile file(":/dark.qss");
+	/*QFile file(":/dark.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);
-	a.setStyleSheet(stream.readAll());
+	a.setStyleSheet(stream.readAll());*/
 
 	QSurfaceFormat format;
 	format.setDepthBufferSize(24);
@@ -21,6 +21,11 @@ int main(int argc, char *argv[])
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setRenderableType(QSurfaceFormat::OpenGL);
+	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+
+#ifdef NDEBUG
+	// format.setOption(QSurfaceFormat::DebugContext);
+#endif
 
 	QSurfaceFormat::setDefaultFormat(format);
     

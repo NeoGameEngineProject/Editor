@@ -19,18 +19,6 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
 
 void OpenGLWidget::initializeGL()
 {
-	
-}
-
-void OpenGLWidget::resizeGL(int w, int h)
-{
-	
-}
-
-void OpenGLWidget::paintGL()
-{
-	if(!m_render)
-	{
 #ifdef __linux__
 		auto context = QOpenGLContext::currentContext();
 		auto nativeContext = reinterpret_cast<QGLXNativeContext*>(context->nativeHandle().data());
@@ -43,8 +31,15 @@ void OpenGLWidget::paintGL()
 
 		m_render = std::make_unique<PlatformRenderer>();
 		m_render->initialize(width(), height(), nullptr, (void*) (uintptr_t) parentWidget()->winId(), nativeContext->context());
-	}
-	
+}
+
+void OpenGLWidget::resizeGL(int w, int h)
+{
+	m_render->setViewport(x(), y(), w, h);
+}
+
+void OpenGLWidget::paintGL()
+{
 	assert(m_render != nullptr);
 	m_render->clear(1, 0, 1, 1);
 	m_render->swapBuffers();

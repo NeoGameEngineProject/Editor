@@ -1,6 +1,7 @@
 #ifndef NEO_OPENGLWIDGET_H
 #define NEO_OPENGLWIDGET_H
 
+#include <QTimer>
 #include <QOpenGLWidget>
 #include <memory>
 #include <functional>
@@ -19,6 +20,7 @@ class Renderer;
 class OpenGLWidget : public QOpenGLWidget
 {
 	std::unique_ptr<PlatformRenderer> m_render;
+	QTimer m_redrawTimer;
 public:
 	OpenGLWidget(QWidget* parent);
 

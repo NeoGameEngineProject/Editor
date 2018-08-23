@@ -28,16 +28,16 @@
      <x>0</x>
      <y>0</y>
      <width>1182</width>
-     <height>17</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>Fi&amp;le</string>
     </property>
     <widget class="QMenu" name="menuOpen">
      <property name="title">
-      <string>Open</string>
+      <string>&amp;Open</string>
      </property>
      <addaction name="actionLevel"/>
      <addaction name="actionProject"/>
@@ -69,7 +69,7 @@
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>Scene</string>
+    <string>S&amp;cene</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -103,7 +103,7 @@
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>Object</string>
+    <string>Ob&amp;ject</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -191,7 +191,7 @@
     <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Scene Editor</string>
+    <string>Sce&amp;ne Editor</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
@@ -205,7 +205,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="Neo::LevelWidget" name="sceneEditor">
+      <widget class="Neo::EditorWidget" name="sceneEditor">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -225,7 +225,7 @@
   </widget>
   <widget class="QDockWidget" name="gameDock">
    <property name="windowTitle">
-    <string>Game</string>
+    <string>&amp;Game</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -235,10 +235,11 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLevel">
    <property name="icon">
-    <iconset theme="document-open"/>
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Level</string>
+    <string>&amp;Level</string>
    </property>
    <property name="toolTip">
     <string>Open Level</string>
@@ -249,7 +250,7 @@
   </action>
   <action name="actionProject">
    <property name="text">
-    <string>Project</string>
+    <string>&amp;Project</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
@@ -259,14 +260,31 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Neo::LevelWidget</class>
+   <class>Neo::EditorWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header location="global">platform/LevelWidget.h</header>
+   <header location="global">platform/EditorWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionLevel</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openLevelSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <slots>
-  <slot>startButtonClick()</slot>
+  <slot>openLevelSlot()</slot>
  </slots>
 </ui>

@@ -1,6 +1,7 @@
 #ifndef NEO_LEVELWIDGET_H
 #define NEO_LEVELWIDGET_H
 
+#include "QtInputContext.h"
 #include "OpenGLWidget.h"
 #include <Platform.h>
 
@@ -22,7 +23,11 @@ public:
 	}
 
 	std::shared_ptr<Level> getLevel() { return m_level; }
-
+	CameraBehavior& getCamera() { return m_camera; }
+	Platform& getPlatform() { return m_platform; }
+	
+	bool event(QEvent* e) override;
+	
 protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);
@@ -30,6 +35,7 @@ protected:
 
 private:
 	std::shared_ptr<Level> m_level;
+	
 	Platform m_platform;
 
 	Object m_cameraObject;

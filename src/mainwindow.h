@@ -20,6 +20,16 @@ public:
 	
 	void resetView();
 
+signals:
+	void openLevel(QString file);
+	void openProject(QString file);
+	
+	void saveLevel(QString file);
+	void saveProject(QString file);
+	
+public slots:
+	void openLevelSlot();
+	
 private:
 	Ui::MainWindow *ui;
 };

@@ -5,6 +5,8 @@
 #include "platform/OpenGLWidget.h"
 
 #include <Level.h>
+#include <QFileDialog>
+#include <Log.h>
 
 using namespace std;
 
@@ -19,6 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	auto level = std::make_shared<Neo::Level>();
 	ui->sceneEditor->setLevel(level);
+	
+	connect(this, &MainWindow::openLevel, [this](QString file) {
+		ui->sceneEditor->getLevel()->load(file.toUtf8().data());
+	});
 }
 
 MainWindow::~MainWindow()
@@ -32,8 +38,11 @@ void MainWindow::resetView()
 	splitDockWidget(ui->sceneDock, ui->objectDock, Qt::Orientation::Vertical);
 
 	tabifyDockWidget(ui->editorDock, ui->gameDock);
-
 	ui->editorDock->raise();
+}
 
-	ui->editorDock->setMinimumWidth(width()*0.90);
+void MainWindow::openLevelSlot()
+{
+	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), "/home", tr("Neo Level (*.nlv);;COLLADA DAE (*.dae)"));
+	emit openLevel(file);
 }

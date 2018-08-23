@@ -59,9 +59,9 @@ void EditorWidget::updateImGuiInput()
 	io.MousePos = ImVec2(mouse.getPosition().x, mouse.getPosition().y);
 	io.MouseDelta = ImVec2(mouse.getDirection().x, mouse.getDirection().y);
 	
-	io.MouseClicked[0] = mouse.isKeyDown(MOUSE_BUTTON_LEFT);
-	io.MouseClicked[1] = mouse.isKeyDown(MOUSE_BUTTON_RIGHT);
-	io.MouseClicked[2] = mouse.isKeyDown(MOUSE_BUTTON_MIDDLE);
+	io.MouseDown[0] = mouse.isKeyDown(MOUSE_BUTTON_LEFT);
+	io.MouseDown[1] = mouse.isKeyDown(MOUSE_BUTTON_RIGHT);
+	io.MouseDown[2] = mouse.isKeyDown(MOUSE_BUTTON_MIDDLE);
 }
 
 void EditorWidget::paintGL()
@@ -72,7 +72,12 @@ void EditorWidget::paintGL()
 	
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
-		
+	
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::Begin(tr("Statistics").toUtf8().data());
+	ImGui::Text("Statistics");
+	ImGui::End();
+	
 	ImGuizmo::BeginFrame();
 	
 	Matrix4x4 id;

@@ -7,6 +7,7 @@
 class QtInputContext : public Neo::InputContext
 {
 public:
+	QtInputContext(): InputContext() {}
 	virtual void handleInput();
 	virtual void setMouseRelative(bool value);
 };

@@ -27,8 +27,14 @@ signals:
 	void saveLevel(QString file);
 	void saveProject(QString file);
 	
+	void levelChanged();
+	
 public slots:
 	void openLevelSlot();
+	
+	void translationTool();
+	void rotationTool();
+	void scaleTool();
 	
 private:
 	Ui::MainWindow *ui;

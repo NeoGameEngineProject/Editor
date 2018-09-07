@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setRenderableType(QSurfaceFormat::OpenGL);
 	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+	format.setSamples(4);
 
 #ifdef NDEBUG
 	// format.setOption(QSurfaceFormat::DebugContext);

@@ -36,8 +36,7 @@ void LevelWidget::resizeGL(int w, int h)
 void LevelWidget::paintGL()
 {
 	auto& input = m_platform.getInputContext();
-	input.flush();
-	
+
 	if(hasFocus())
 	{
 		if(input.isKeyDown(Neo::KEY_W))
@@ -67,6 +66,7 @@ void LevelWidget::paintGL()
 	{
 		m_level->begin(m_platform, *getRenderer());
 		m_level->setCurrentCamera(&m_camera);
+		m_levelNeedsInit = false;
 	}
 
 	m_level->update(m_platform, 0.0f);
@@ -285,20 +285,20 @@ INPUT_KEYS translateEvent(int key)
 bool LevelWidget::event(QEvent* e)
 {
 	auto& input = m_platform.getInputContext();
-	
+
 	switch(e->type())
 	{
 		case QEvent::KeyPress:
 		{
 			QKeyEvent* key = static_cast<QKeyEvent*>(e);
-			input.getKeyboard().keyDown(key->key());
+			input.getKeyboard().keyDown(translateEvent(key->key()));
 		}
 		break;
 		
 		case QEvent::KeyRelease:
 		{
 			QKeyEvent* key = static_cast<QKeyEvent*>(e);
-			input.getKeyboard().keyUp(key->key());
+			input.getKeyboard().keyUp(translateEvent(key->key()));
 		}
 		break;
 		
@@ -352,5 +352,6 @@ bool LevelWidget::event(QEvent* e)
 	if(!input.isMouseRelative()) // Only calculate direction from position when it is needed
 		input.getMouse().flushDirection();
 	
+	e->accept();
 	return true;
 }

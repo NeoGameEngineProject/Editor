@@ -57,6 +57,11 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionLevel"/>
+   <addaction name="separator"/>
+   <addaction name="actionTranslate"/>
+   <addaction name="actionRotate"/>
+   <addaction name="actionScale"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="sceneDock">
    <property name="sizePolicy">
@@ -77,7 +82,7 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <widget class="QTreeView" name="treeView">
+      <widget class="Neo::LevelTreeWidget" name="levelTree">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -117,65 +122,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
-      <widget class="QTreeWidget" name="treeWidget">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <property name="allColumnsShowFocus">
-        <bool>false</bool>
-       </property>
-       <property name="headerHidden">
-        <bool>true</bool>
-       </property>
-       <attribute name="headerDefaultSectionSize">
-        <number>20</number>
-       </attribute>
-       <column>
-        <property name="text">
-         <string>Property</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Value</string>
-        </property>
-       </column>
-       <item>
-        <property name="text">
-         <string>Transform</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <item>
-         <property name="text">
-          <string>Position</string>
-         </property>
-         <property name="flags">
-          <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Rotation</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Scale</string>
-         </property>
-         <property name="flags">
-          <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-         </property>
-        </item>
-       </item>
-      </widget>
+      <widget class="Neo::ObjectWidget" name="objectWidget"/>
      </item>
     </layout>
    </widget>
@@ -256,6 +203,39 @@
     <string>Ctrl+Shift+O</string>
    </property>
   </action>
+  <action name="actionTranslate">
+   <property name="text">
+    <string>Translate</string>
+   </property>
+   <property name="toolTip">
+    <string>Translation Tool</string>
+   </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="actionRotate">
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotation Tool</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="actionScale">
+   <property name="text">
+    <string>Scale</string>
+   </property>
+   <property name="toolTip">
+    <string>Scale Tool</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -263,6 +243,23 @@
    <class>Neo::EditorWidget</class>
    <extends>QOpenGLWidget</extends>
    <header location="global">platform/EditorWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Neo::LevelTreeWidget</class>
+   <extends>QTreeView</extends>
+   <header location="global">widgets/LevelTreeWidget.h</header>
+   <slots>
+    <signal>objectSelectionChanged(ObjectHandle)</signal>
+    <slot>levelChangedSlot()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>Neo::ObjectWidget</class>
+   <extends>QTreeView</extends>
+   <header location="global">widgets/ObjectWidget.h</header>
+   <slots>
+    <slot>setObject(ObjectHandle)</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -274,8 +271,88 @@
    <slot>openLevelSlot()</slot>
    <hints>
     <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
      <x>590</x>
      <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>levelChanged()</signal>
+   <receiver>levelTree</receiver>
+   <slot>levelChangedSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>115</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>58</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>levelTree</sender>
+   <signal>objectSelectionChanged(ObjectHandle)</signal>
+   <receiver>objectWidget</receiver>
+   <slot>setObject(ObjectHandle)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>176</x>
+     <y>277</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1093</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTranslate</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>translationTool()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionRotate</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>rotationTool()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionScale</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>scaleTool()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>590</x>
@@ -285,6 +362,10 @@
   </connection>
  </connections>
  <slots>
+  <signal>levelChanged()</signal>
   <slot>openLevelSlot()</slot>
+  <slot>translationTool()</slot>
+  <slot>rotationTool()</slot>
+  <slot>scaleTool()</slot>
  </slots>
 </ui>

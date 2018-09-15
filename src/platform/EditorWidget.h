@@ -2,6 +2,7 @@
 #define NEO_EDITORWIDGET_H
 
 #include "LevelWidget.h"
+#include <Texture.h>
 
 namespace Neo 
 {
@@ -40,6 +41,9 @@ private:
 	
 	std::vector<ObjectHandle> m_selection;
 	EDITOR_MODE m_mode = EDITOR_TRANSLATE;
+
+	// Contains the textures belonging to the camera/light/etc. objects
+	Texture* m_objectTextures[3];
 };
 
 }

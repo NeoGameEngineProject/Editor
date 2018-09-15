@@ -35,6 +35,16 @@ void EditorWidget::initializeGL()
 	ImGuizmo::SetRect(0, 0, width(), height());
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetOrthographic(false);
+
+	auto lvl = getLevel();
+	m_objectTextures[0] = lvl->loadTexture("assets/light.png");
+	m_objectTextures[1] = lvl->loadTexture("assets/camera.png");
+	m_objectTextures[2] = lvl->loadTexture("assets/sound.png");
+
+	auto render = getRenderer();
+	m_objectTextures[0]->setID(render->createTexture(m_objectTextures[0]));
+	m_objectTextures[1]->setID(render->createTexture(m_objectTextures[1]));
+	m_objectTextures[2]->setID(render->createTexture(m_objectTextures[2]));
 }
 
 void EditorWidget::resizeGL(int w, int h)
@@ -67,52 +77,111 @@ void EditorWidget::updateImGuiInput()
 void EditorWidget::paintGL()
 {
 	LevelWidget::paintGL();
-	
+
 	// Update selection
 	auto& input = getPlatform().getInputContext();
-	if(input.getMouse().onKeyDown(MOUSE_BUTTON_LEFT) && !ImGuizmo::IsOver())
+	Vector2 mousepos = input.getMouse().getPosition();
+	ObjectHandle selectedObject;
+
+	// Saved here so we can query it when drawing lights etc.
+	bool triggerSelect = input.getMouse().onKeyDown(MOUSE_BUTTON_LEFT);
+	if(triggerSelect && !ImGuizmo::IsOver())
 	{
 		auto& camera = getCamera();
-		
-		Vector2 mousepos = input.getMouse().getPosition();
+
 		Vector3 origin = camera.getParent()->getPosition();
 		Vector3 direction = camera.getUnProjectedPoint(Vector3(mousepos.x, height() - mousepos.y, 1));
 		direction = (direction - origin).getNormalized();
-	
+
 		Vector3 hit;
-		ObjectHandle object;
-		if(getLevel()->castRay(origin, direction, 1000000.0f, &hit, &object))
+		if(getLevel()->castRay(origin, direction, 1000000.0f, &hit, &selectedObject))
 		{
 			if(input.isKeyDown(KEY_LSHIFT) || input.isKeyDown(KEY_RSHIFT))
 			{
-				m_selection.push_back(object);
+				m_selection.push_back(selectedObject);
 			}
 			else
 			{
 				m_selection.clear();
-				m_selection.push_back(object);
+				m_selection.push_back(selectedObject);
 			}
-			
-			emit objectSelectionChanged(object);
+
+			emit objectSelectionChanged(selectedObject);
 			emit objectSelectionListChanged(m_selection);
 		}
-		else
+		else if(!input.isKeyDown(KEY_LSHIFT) && !input.isKeyDown(KEY_RSHIFT))
 		{
 			m_selection.clear();
-			
+
 			emit objectSelectionChanged(ObjectHandle());
 			emit objectSelectionListChanged(m_selection);
 		}
-		
-		// FIXME: HACK!
-		input.flush();
 	}
-	
+
+	// FIXME: HACK!
+	input.flush();
+
 	updateImGuiInput();
 	
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
-	
+
+	ImGui::SetNextWindowBgAlpha(0);
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(width(), height()));
+
+	ImGui::Begin("", nullptr, ImGuiWindowFlags_NoTitleBar
+						| ImGuiWindowFlags_NoResize
+						| ImGuiWindowFlags_NoScrollbar
+						| ImGuiWindowFlags_NoInputs
+						| ImGuiWindowFlags_NoSavedSettings
+						| ImGuiWindowFlags_NoFocusOnAppearing
+						| ImGuiWindowFlags_NoBringToFrontOnFocus);
+	{
+		auto lvl = getLevel();
+		for(auto& obj : lvl->getObjects())
+		{
+			unsigned int icon;
+			if(obj.getBehavior<LightBehavior>()) icon = 0;
+			else if(obj.getBehavior<CameraBehavior>()) icon = 1;
+			else if(obj.getBehavior<SoundBehavior>()) icon = 2;
+			else continue;
+
+			const float iconSize = 64;
+			auto p = getCamera().getProjectedPoint(obj.getPosition());
+			p.y = height() - p.y;
+
+			p += Vector3(-iconSize/2, -iconSize/2, 0);
+
+			// TODO Make icon size configurable!
+			if(p.x <= width() + iconSize && p.y <= height() + iconSize && p.z < 1.0f)
+			{
+				// Icon * scale / distance TODO Make configurable
+				float scale = iconSize; // * 10.0f /(obj.getPosition() - getCamera().getParent()->getPosition()).getLength();
+				ImGui::SetCursorPos(ImVec2(p.x, p.y));
+				ImGui::Image((ImTextureID) m_objectTextures[icon]->getID(), ImVec2(scale, scale));
+
+				// Update selection
+				if(triggerSelect
+					&& mousepos.x >= p.x && mousepos.x < (p.x + iconSize)
+					&& mousepos.y >= p.y && mousepos.y < (p.y + iconSize))
+				{
+					if(!selectedObject.empty())
+						m_selection.pop_back();
+
+					if(!input.isKeyDown(KEY_LSHIFT) && !input.isKeyDown(KEY_RSHIFT))
+						m_selection.clear();
+
+					m_selection.push_back(obj.getSelf());
+
+					emit objectSelectionChanged(obj.getSelf());
+					emit objectSelectionListChanged(m_selection);
+				}
+			}
+		}
+	}
+	ImGui::End();
+
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::Begin(tr("Statistics").toUtf8().data());
 	ImGui::Text("Statistics");
@@ -186,8 +255,7 @@ void EditorWidget::paintGL()
 					
 					Vector3 translationAxis = (object->getPosition() - selection.getTranslationPart()).getNormalized();
 					object->setPosition(object->getPosition() + (translationAxis * scale));
-					LOG_INFO(object->getPosition());
-					
+
 					object->updateMatrix();
 				}
 			}

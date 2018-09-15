@@ -48,11 +48,8 @@ void ObjectWidget::setObject(ObjectHandle h)
 
 	addTopLevelItem(createTransform(h));
 	
-	auto behaviors = new QTreeWidgetItem(QStringList(tr("Behaviors")));
-	addTopLevelItem(behaviors);
-	
 	for(auto& behavior : h->getBehaviors())
-		behaviors->addChild(createBehavior(behavior.get()));
+		addTopLevelItem(createBehavior(behavior.get()));
 	
 	expandAll();
 	updateObject(h);

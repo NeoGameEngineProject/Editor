@@ -20,6 +20,8 @@ public:
 	
 	void resetView();
 
+	void resizeEvent(QResizeEvent* e) override;
+	
 signals:
 	void openLevel(QString file);
 	void openProject(QString file);

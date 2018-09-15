@@ -70,6 +70,27 @@ void MainWindow::resetView()
 
 	tabifyDockWidget(ui->editorDock, ui->gameDock);
 	ui->editorDock->raise();
+	
+	// Because resize does not work...
+	ui->sceneDock->setMaximumWidth(0.15*width());
+	ui->objectDock->setMaximumWidth(0.15*width());
+	
+	ui->sceneDock->setMaximumHeight(height() * 0.5);
+	ui->objectDock->setMaximumHeight(height() * 0.5);
+}
+
+void MainWindow::resizeEvent(QResizeEvent* e)
+{
+	ui->sceneDock->setMaximumHeight(height());
+	ui->objectDock->setMaximumHeight(height());
+	
+	ui->sceneDock->setMaximumWidth(ui->sceneDock->width());
+	ui->objectDock->setMaximumWidth(ui->objectDock->width());
+	
+	QMainWindow::resizeEvent(e);
+	
+	ui->sceneDock->setMaximumWidth(width());
+	ui->objectDock->setMaximumWidth(width());
 }
 
 void MainWindow::openLevelSlot()

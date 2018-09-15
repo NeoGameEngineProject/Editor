@@ -30,6 +30,8 @@ private:
 	QTreeWidgetItem* createTransform(ObjectHandle o);
 	QTreeWidgetItem* createBehavior(Behavior* b);
 	
+	QTreeWidgetItem* findItemWithParent(const std::string& parent, const std::string& name);
+	
 	VectorWidget<Vector3>* m_position, *m_rotation, *m_scale;
 	QLineEdit* m_name;
 	QCheckBox* m_active;

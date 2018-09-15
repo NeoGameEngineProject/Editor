@@ -43,6 +43,8 @@
      <addaction name="actionProject"/>
     </widget>
     <addaction name="menuOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -234,6 +236,14 @@
    </property>
    <property name="shortcut">
     <string>3</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>

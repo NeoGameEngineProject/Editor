@@ -1,5 +1,7 @@
 #include "ObjectWidget.h"
 #include "VectorWidget.h"
+#include "ColorButton.h"
+
 #include <Log.h>
 
 #include <QLineEdit>
@@ -98,8 +100,103 @@ QTreeWidgetItem* ObjectWidget::createTransform(ObjectHandle o)
 QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 {
 	auto title = new QTreeWidgetItem(QStringList() << b->getName() << "");
-	
+	for(auto prop : b->getProperties())
+	{
+		auto propItem = new QTreeWidgetItem(title, QStringList() << prop->getName().c_str());
+		switch(prop->getType())
+		{
+		case INTEGER: 
+		{
+			QSpinBox* widget;
+			setItemWidget(propItem, 1, widget = new QSpinBox(this));
+			
+			widget->setSingleStep(1);
+			widget->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
+			
+			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop](int value) mutable {
+				prop->set(value);
+			});
+		}
+		break;
+		
+		case FLOAT:
+		{
+			QDoubleSpinBox* widget;
+			setItemWidget(propItem, 1, widget = new QDoubleSpinBox(this));
+			
+			widget->setSingleStep(0.1);
+			widget->setRange(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+			widget->setDecimals(std::numeric_limits<float>::digits10);
+			
+			connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), [prop](double value) mutable {
+				prop->set(static_cast<float>(value));
+			});
+		}
+		break;
+		
+		case VECTOR2:
+		{
+			VectorWidget<Neo::Vector2>* widget;
+			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector2>(this));
+			
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+				prop->set(widget->value());
+			});
+		}
+		break;
+		
+		case VECTOR3:
+		{
+			VectorWidget<Neo::Vector3>* widget;
+			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector3>(this));
+			
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+				prop->set(widget->value());
+			});
+		}
+		break;
+		
+		case VECTOR4: 
+		{
+			VectorWidget<Neo::Vector4>* widget;
+			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector4>(this));
+			
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+				prop->set(widget->value());
+			});
+		}
+		break;
+		
+		case COLOR:
+		{
+			ColorButton* widget;
+			setItemWidget(propItem, 1, widget = new ColorButton(this));
+			
+			connect(widget, &ColorButton::colorChanged, [prop](const Vector4& color) mutable {
+				prop->set(color);
+			});
+		}
+		break;
+		
+		default:
+			setItemWidget(propItem, 1, new QLabel(tr("Unknown type!")));
+		}
+	}
+		
 	return title;
+}
+
+
+QTreeWidgetItem* ObjectWidget::findItemWithParent(const std::string& parent, const std::string& name)
+{
+	auto behaviorItems = findItems(QString(name.c_str()), Qt::MatchExactly | Qt::MatchRecursive, 0);
+	for(auto item : behaviorItems)
+	{
+		if(item->parent()->text(0) == parent.c_str())
+			return item;
+	}
+	
+	return nullptr;
 }
 
 void ObjectWidget::updateObject(ObjectHandle h)
@@ -109,6 +206,28 @@ void ObjectWidget::updateObject(ObjectHandle h)
 	m_scale->setValue(h->getScale());
 	m_active->setChecked(h->isActive());
 	
-	// TODO Behaviors
+	for(auto& behavior : h->getBehaviors())
+	{
+		for(auto prop : behavior->getProperties())
+		{
+			auto propItem = findItemWithParent(behavior->getName(), prop->getName());
+			if(!propItem)
+			{
+				LOG_WARNING("No property " << prop->getName() << " found!");
+				continue;
+			}
+			
+			switch(prop->getType())
+			{
+			case INTEGER: reinterpret_cast<QSpinBox*>(itemWidget(propItem, 1))->setValue(prop->get<int>()); break;
+			case FLOAT: reinterpret_cast<QDoubleSpinBox*>(itemWidget(propItem, 1))->setValue(prop->get<float>()); break;
+			case VECTOR2: reinterpret_cast<VectorWidget<Neo::Vector2>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector2>()); break;
+			case VECTOR3: reinterpret_cast<VectorWidget<Neo::Vector3>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector3>()); break;
+			case VECTOR4: reinterpret_cast<VectorWidget<Neo::Vector4>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector4>()); break;
+			case COLOR: reinterpret_cast<ColorButton*>(itemWidget(propItem, 1))->setColor(prop->get<Vector4>()); break;
+			default: LOG_WARNING("Unknown property type for property " << prop->getName() << "!");
+			}
+		}
+	}
 }
 

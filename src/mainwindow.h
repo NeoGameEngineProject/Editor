@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include <ConsoleStream.h>
+
 namespace Ui 
 {
 class MainWindow;
@@ -33,13 +35,19 @@ signals:
 	
 public slots:
 	void openLevelSlot();
-	
+	void saveLevelSlot();
+	void saveLevelAsSlot();
+
 	void translationTool();
 	void rotationTool();
 	void scaleTool();
 	
 private:
 	Ui::MainWindow *ui;
+	ConsoleStream m_consoleStream;
+	
+	std::string m_file; // The file that is currently being edited
+	bool m_readOnly = false; // If the file is loaded as read-only (e.g. for DAE files)
 };
 
 #endif // MAINWINDOW_H

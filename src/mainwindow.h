@@ -32,12 +32,14 @@ signals:
 	void saveProject(QString file);
 	
 	void levelChanged();
+	void behaviorsChanged();
 	
 public slots:
 	void openLevelSlot();
 	void saveLevelSlot();
 	void saveLevelAsSlot();
-
+	void appendSceneSlot();
+	
 	void translationTool();
 	void rotationTool();
 	void scaleTool();

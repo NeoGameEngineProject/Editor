@@ -20,7 +20,8 @@ class EditorWidget : public LevelWidget
 public:
 	EditorWidget(QWidget* parent);
 
-	void setMode(EDITOR_MODE mode) { m_mode = mode; } 
+	void setMode(EDITOR_MODE mode) { m_mode = mode; }
+	const std::vector<ObjectHandle>& getSelection() const { return m_selection; }
 	
 protected:
 	virtual void initializeGL();

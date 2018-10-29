@@ -48,7 +48,15 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionAdd_Behavior"/>
+    <addaction name="actionAppend_Scene"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -61,6 +69,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionLevel"/>
+   <addaction name="actionSave"/>
    <addaction name="separator"/>
    <addaction name="actionTranslate"/>
    <addaction name="actionRotate"/>
@@ -238,7 +247,7 @@
   <action name="actionLevel">
    <property name="icon">
     <iconset theme="document-open">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>&amp;Level</string>
@@ -300,6 +309,10 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+   </property>
    <property name="text">
     <string>&amp;Save Level</string>
    </property>
@@ -308,11 +321,25 @@
    </property>
   </action>
   <action name="actionSave_Level_As">
+   <property name="icon">
+    <iconset theme="document-save-as">
+     <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+   </property>
    <property name="text">
-    <string>Save Level As</string>
+    <string>Save &amp;Level As</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionAdd_Behavior">
+   <property name="text">
+    <string>&amp;Add Behavior</string>
+   </property>
+  </action>
+  <action name="actionAppend_Scene">
+   <property name="text">
+    <string>Append Scene</string>
    </property>
   </action>
  </widget>
@@ -446,8 +473,8 @@
    <slot>saveLevelSlot()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>590</x>
-     <y>335</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>590</x>
@@ -487,6 +514,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAppend_Scene</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>appendSceneSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>levelChanged()</signal>
@@ -496,5 +539,6 @@
   <slot>scaleTool()</slot>
   <slot>saveLevelSlot()</slot>
   <slot>saveLevelAsSlot()</slot>
+  <slot>appendSceneSlot()</slot>
  </slots>
 </ui>

@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_consoleStream.setOutput(ui->consoleOutput);
 	Neo::Log::setOutStream(m_consoleStream);
 	Neo::Log::setErrStream(m_consoleStream);
-
+	
 	auto level = std::make_shared<Neo::Level>();
 	ui->sceneEditor->setLevel(level);
 	ui->levelTree->setLevel(level);
@@ -64,6 +64,29 @@ MainWindow::MainWindow(QWidget *parent) :
 		emit levelChanged();
 	});
 	
+	connect(this, &MainWindow::behaviorsChanged, [this]() mutable {
+		LOG_DEBUG("Reloading behaviors");
+		auto menu = ui->actionAdd_Behavior->menu();
+		menu->clear();
+		
+		for(auto& b : Neo::Behavior::registeredBehaviors())
+		{
+			auto action = menu->addAction(b->getName());
+			action->setObjectName(b->getName());
+			
+			connect(action, &QAction::triggered, [action, this]() mutable {
+				auto name = action->objectName().toUtf8().data();
+				LOG_DEBUG("Creating behavior " << name);
+				
+				for(auto obj : ui->sceneEditor->getSelection())
+					obj->addBehavior(Neo::Behavior::create(name));
+				
+				emit levelChanged();
+			});
+		}
+	});
+	
+	connect(this, &MainWindow::levelChanged, ui->levelTree, &Neo::LevelTreeWidget::levelChangedSlot);
 	connect(ui->levelTree, &Neo::LevelTreeWidget::objectSelectionListChanged, ui->sceneEditor, &Neo::EditorWidget::setSelection);
 	connect(ui->sceneEditor, &Neo::EditorWidget::objectSelectionListChanged, ui->levelTree, &Neo::LevelTreeWidget::setSelectionList);
 	connect(ui->sceneEditor, &Neo::EditorWidget::objectChanged, ui->objectWidget, &Neo::ObjectWidget::updateObject);
@@ -91,6 +114,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->objectWidget->updateObject(h);
 	});
 	
+	// Create behavior menu
+	ui->actionAdd_Behavior->setMenu(new QMenu);
+	
+	emit behaviorsChanged();
 	emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 }
 
@@ -161,6 +188,28 @@ void MainWindow::saveLevelSlot()
 	}
 
 	emit saveLevel(QString(m_file.c_str()));
+}
+
+void MainWindow::appendSceneSlot()
+{
+	auto level = ui->sceneEditor->getLevel();
+	
+	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("Neo Level (*.nlv);;COLLADA DAE (*.dae)"));
+	if(file.isEmpty())
+		return;
+	
+	auto name = file.toStdString();
+	name = name.substr(name.find_last_of('/') + 1);
+	
+	auto obj = level->addObject(name.c_str());
+	obj->setParent(level->getRoot());
+	level->getRoot()->addChild(obj);
+	
+	level->load(file.toUtf8().data(), name.c_str());
+	
+	// To trigger re-init
+	ui->sceneEditor->setLevel(level);
+	emit levelChanged();
 }
 
 void MainWindow::translationTool()

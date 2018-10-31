@@ -9,6 +9,7 @@
 #include <QMessageBox>
 
 #include <Log.h>
+#include <Object.h>
 
 using namespace std;
 
@@ -63,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		
 		emit levelChanged();
 	});
-	
+
 	connect(this, &MainWindow::behaviorsChanged, [this]() mutable {
 		LOG_DEBUG("Reloading behaviors");
 		auto menu = ui->actionAdd_Behavior->menu();
@@ -112,6 +113,50 @@ MainWindow::MainWindow(QWidget *parent) :
 		h->setName(nameData);
 		ui->levelTree->levelChangedSlot();
 		ui->objectWidget->updateObject(h);
+	});
+
+	connect(ui->actionAdd_Object, &QAction::triggered, [this]() {
+		
+		auto level = ui->sceneEditor->getLevel();
+		auto object = level->findInactive();
+		
+		if(object.empty())
+			object = level->addObject("");
+
+		object->getTransform().loadIdentity();
+		object->updateFromMatrix();
+		object->setActive(true);
+	
+		auto name = level->getUniqueName("Object");
+		object->setName(name.c_str());
+	
+		level->getRoot()->addChild(object);
+		object->setParent(level->getRoot());
+		
+		// To trigger re-init
+		ui->sceneEditor->setLevel(level);
+		emit levelChanged();
+	});
+	
+	connect(ui->actionDelete_Object, &QAction::triggered, [this]() {
+		auto& selection = ui->sceneEditor->getSelection();
+		
+		for(auto k : selection)
+		{
+			k->getBehaviors().clear();
+			k->setActive(false);
+			k->setName("");
+			
+			auto parent = k->getParent();
+			if(!parent.empty())
+				parent->removeChild(k);
+		}
+		
+		ui->sceneEditor->setSelection({});
+		
+		// To trigger re-init
+		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		emit levelChanged();
 	});
 	
 	// Create behavior menu
@@ -200,6 +245,8 @@ void MainWindow::appendSceneSlot()
 	
 	auto name = file.toStdString();
 	name = name.substr(name.find_last_of('/') + 1);
+	
+	level->makeNameUnique(name);
 	
 	auto obj = level->addObject(name.c_str());
 	obj->setParent(level->getRoot());

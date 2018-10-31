@@ -53,7 +53,11 @@
      <string>Edit</string>
     </property>
     <addaction name="actionAdd_Behavior"/>
+    <addaction name="separator"/>
     <addaction name="actionAppend_Scene"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_Object"/>
+    <addaction name="actionDelete_Object"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -247,7 +251,7 @@
   <action name="actionLevel">
    <property name="icon">
     <iconset theme="document-open">
-     <normaloff>../../../../../../.designer/backup</normaloff>../../../../../../.designer/backup</iconset>
+     <normaloff>../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>&amp;Level</string>
@@ -311,7 +315,7 @@
   <action name="actionSave">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+     <normaloff>../../../../../../../../.designer/backup</normaloff>../../../../../../../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>&amp;Save Level</string>
@@ -323,7 +327,7 @@
   <action name="actionSave_Level_As">
    <property name="icon">
     <iconset theme="document-save-as">
-     <normaloff>../../../../.designer/backup</normaloff>../../../../.designer/backup</iconset>
+     <normaloff>../../../../../../../../.designer/backup</normaloff>../../../../../../../../.designer/backup</iconset>
    </property>
    <property name="text">
     <string>Save &amp;Level As</string>
@@ -339,7 +343,17 @@
   </action>
   <action name="actionAppend_Scene">
    <property name="text">
-    <string>Append Scene</string>
+    <string>Append &amp;Scene</string>
+   </property>
+  </action>
+  <action name="actionAdd_Object">
+   <property name="text">
+    <string>Add Object</string>
+   </property>
+  </action>
+  <action name="actionDelete_Object">
+   <property name="text">
+    <string>Delete Object</string>
    </property>
   </action>
  </widget>

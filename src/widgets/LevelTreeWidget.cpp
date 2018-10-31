@@ -32,7 +32,10 @@ void LevelTreeWidget::addObject(ObjectHandle object, QTreeWidgetItem* parent, bo
 {
 	QTreeWidgetItem* item = (onlyChildren ? parent : new ObjectItem(parent, QStringList(object->getName().str()), object));
 	for(auto& child : object->getChildren())
-		addObject(child, item);
+	{
+		if(child->isActive())
+			addObject(child, item);
+	}
 }
 
 void LevelTreeWidget::levelChangedSlot()

@@ -21,7 +21,6 @@ public:
 	~MainWindow();
 	
 	void resetView();
-
 	void resizeEvent(QResizeEvent* e) override;
 	
 signals:

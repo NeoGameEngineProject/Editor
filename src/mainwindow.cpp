@@ -13,6 +13,26 @@
 
 using namespace std;
 
+static Neo::ObjectHandle createObject(Neo::Level& level, const char* newName)
+{
+	auto object = level.findInactive();
+	
+	if(object.empty())
+		object = level.addObject("");
+
+	object->getTransform().loadIdentity();
+	object->updateFromMatrix();
+	object->setActive(true);
+
+	auto name = level.getUniqueName(newName);
+	object->setName(name.c_str());
+
+	level.getRoot()->addChild(object);
+	object->setParent(level.getRoot());
+	
+	return object;
+}
+
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
@@ -76,12 +96,18 @@ MainWindow::MainWindow(QWidget *parent) :
 			action->setObjectName(b->getName());
 			
 			connect(action, &QAction::triggered, [action, this]() mutable {
+				
+				auto& selection = ui->sceneEditor->getSelection();
+				if(selection.empty())
+					return;
+				
 				auto name = action->objectName().toUtf8().data();
 				LOG_DEBUG("Creating behavior " << name);
 				
-				for(auto obj : ui->sceneEditor->getSelection())
+				for(auto obj : selection)
 					obj->addBehavior(Neo::Behavior::create(name));
 				
+				ui->objectWidget->setObject(selection.front());
 				emit levelChanged();
 			});
 		}
@@ -115,23 +141,51 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->objectWidget->updateObject(h);
 	});
 
-	connect(ui->actionAdd_Object, &QAction::triggered, [this]() {
+	connect(ui->actionEmpty, &QAction::triggered, [this]() {
+		
+		createObject(*ui->sceneEditor->getLevel(), "Object");
+		
+		// To trigger re-init
+		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		emit levelChanged();
+	});
+	
+	connect(ui->actionCamera, &QAction::triggered, [this]() {
+		
+		auto cam = createObject(*ui->sceneEditor->getLevel(), "Camera");
+		cam->addBehavior<Neo::CameraBehavior>();
+		
+		// To trigger re-init
+		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		emit levelChanged();
+	});
+	
+	connect(ui->actionLight, &QAction::triggered, [this]() {
+		
+		auto obj = createObject(*ui->sceneEditor->getLevel(), "Light");
+		obj->addBehavior<Neo::LightBehavior>();
+		
+		// To trigger re-init
+		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		emit levelChanged();
+	});
+	
+	connect(ui->actionSound, &QAction::triggered, [this]() {
+		
+		auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("Wave File (*.wav);;OGG(*.ogg)"));
+		if(file.isEmpty())
+			return;
 		
 		auto level = ui->sceneEditor->getLevel();
-		auto object = level->findInactive();
+		auto sound = level->loadSound(file.toUtf8().data());
+		if(sound.empty())
+		{
+			QMessageBox::critical(this, tr("Load Sound"), tr("Could not load sound file!"));
+			return;
+		}
 		
-		if(object.empty())
-			object = level->addObject("");
-
-		object->getTransform().loadIdentity();
-		object->updateFromMatrix();
-		object->setActive(true);
-	
-		auto name = level->getUniqueName("Object");
-		object->setName(name.c_str());
-	
-		level->getRoot()->addChild(object);
-		object->setParent(level->getRoot());
+		auto obj = createObject(*level, "Sound");
+		obj->addBehavior(std::make_unique<Neo::SoundBehavior>(sound));
 		
 		// To trigger re-init
 		ui->sceneEditor->setLevel(level);
@@ -161,9 +215,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	
 	// Create behavior menu
 	ui->actionAdd_Behavior->setMenu(new QMenu);
-	
 	emit behaviorsChanged();
-	emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 }
 
 MainWindow::~MainWindow()

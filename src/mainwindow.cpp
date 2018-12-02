@@ -55,6 +55,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		LOG_INFO("Loading from file: " << file.toStdString());
 		
 		auto level = std::make_shared<Neo::Level>();
+		
+		// Disable physics simulation in the editor
+		level->getPhysicsContext().setEnabled(false);
+		
 		ui->sceneEditor->setLevel(level);
 		ui->levelTree->setLevel(level);
 
@@ -68,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		
 		this->setWindowTitle(tr("Neo Editor") + " - " + file);
 		m_file = file.toStdString();
-	
+			
 		emit levelChanged();
 	});
 	
@@ -100,12 +104,21 @@ MainWindow::MainWindow(QWidget *parent) :
 				auto& selection = ui->sceneEditor->getSelection();
 				if(selection.empty())
 					return;
-				
-				auto name = action->objectName().toUtf8().data();
+						
+				auto name = action->objectName().toStdString();
 				LOG_DEBUG("Creating behavior " << name);
 				
 				for(auto obj : selection)
-					obj->addBehavior(Neo::Behavior::create(name));
+				{
+					if(obj->getBehavior(name))
+					{
+						LOG_WARNING("Behavior was already registered for object " << obj->getName());
+						continue;
+					}
+						
+					Neo::Behavior* behavior = obj->addBehavior(Neo::Behavior::create(name.c_str()));
+					ui->sceneEditor->begin(behavior);
+				}
 				
 				ui->objectWidget->setObject(selection.front());
 				emit levelChanged();
@@ -212,6 +225,8 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
 		emit levelChanged();
 	});
+	
+	emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 	
 	// Create behavior menu
 	ui->actionAdd_Behavior->setMenu(new QMenu);

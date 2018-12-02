@@ -9,6 +9,8 @@
 
 #include <ImGuizmo.h>
 
+#include <QApplication>
+
 using namespace Neo;
 
 EditorWidget::EditorWidget(QWidget* parent):
@@ -23,7 +25,11 @@ void EditorWidget::initializeGL()
 	
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	
 	ImGuiIO& io = ImGui::GetIO();
+	
+	io.DisplayFramebufferScale.x = 2.0f;
+	io.DisplayFramebufferScale.y = 2.0f;
 	
 	io.DisplaySize.x = width();
 	io.DisplaySize.y = height();
@@ -31,7 +37,8 @@ void EditorWidget::initializeGL()
 	ImGui_ImplOpenGL3_Init("#version 150");
 	
 	ImGui::StyleColorsDark();
-	
+	ImGui::GetStyle().ScaleAllSizes(devicePixelRatioF() * 0.75f);
+
 	ImGuizmo::SetRect(0, 0, width(), height());
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetOrthographic(false);
@@ -129,7 +136,7 @@ void EditorWidget::paintGL()
 	ImGui::SetNextWindowBgAlpha(0);
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(width(), height()));
-
+	
 	ImGui::Begin("", nullptr, ImGuiWindowFlags_NoTitleBar
 						| ImGuiWindowFlags_NoResize
 						| ImGuiWindowFlags_NoScrollbar

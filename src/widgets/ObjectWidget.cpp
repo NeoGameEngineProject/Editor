@@ -110,8 +110,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
 			
-			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop](int value) mutable {
+			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop, b](int value) mutable {
 				prop->set(value);
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -125,8 +126,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setRange(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
 			widget->setDecimals(std::numeric_limits<float>::digits10);
 			
-			connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), [prop](double value) mutable {
+			connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), [prop, b](double value) mutable {
 				prop->set(static_cast<float>(value));
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -136,8 +138,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector2>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector2>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
 				prop->set(widget->value());
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -147,8 +150,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector3>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector3>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
 				prop->set(widget->value());
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -158,8 +162,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector4>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector4>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
 				prop->set(widget->value());
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -169,8 +174,9 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			ColorButton* widget;
 			setItemWidget(propItem, 1, widget = new ColorButton(this));
 			
-			connect(widget, &ColorButton::colorChanged, [prop](const Vector4& color) mutable {
+			connect(widget, &ColorButton::colorChanged, [prop, b](const Vector4& color) mutable {
 				prop->set(color);
+				b->propertyChanged(prop);
 			});
 		}
 		break;
@@ -214,16 +220,21 @@ void ObjectWidget::updateObject(ObjectHandle h)
 				continue;
 			}
 			
+			QWidget* widget = itemWidget(propItem, 1);
+			widget->blockSignals(true);
+			
 			switch(prop->getType())
 			{
-			case INTEGER: reinterpret_cast<QSpinBox*>(itemWidget(propItem, 1))->setValue(prop->get<int>()); break;
-			case FLOAT: reinterpret_cast<QDoubleSpinBox*>(itemWidget(propItem, 1))->setValue(prop->get<float>()); break;
-			case VECTOR2: reinterpret_cast<VectorWidget<Neo::Vector2>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector2>()); break;
-			case VECTOR3: reinterpret_cast<VectorWidget<Neo::Vector3>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector3>()); break;
-			case VECTOR4: reinterpret_cast<VectorWidget<Neo::Vector4>*>(itemWidget(propItem, 1))->setValue(prop->get<Vector4>()); break;
-			case COLOR: reinterpret_cast<ColorButton*>(itemWidget(propItem, 1))->setColor(prop->get<Vector4>()); break;
+			case INTEGER: reinterpret_cast<QSpinBox*>(widget)->setValue(prop->get<int>()); break;
+			case FLOAT: reinterpret_cast<QDoubleSpinBox*>(widget)->setValue(prop->get<float>()); break;
+			case VECTOR2: reinterpret_cast<VectorWidget<Neo::Vector2>*>(widget)->setValue(prop->get<Vector2>()); break;
+			case VECTOR3: reinterpret_cast<VectorWidget<Neo::Vector3>*>(widget)->setValue(prop->get<Vector3>()); break;
+			case VECTOR4: reinterpret_cast<VectorWidget<Neo::Vector4>*>(widget)->setValue(prop->get<Vector4>()); break;
+			case COLOR: reinterpret_cast<ColorButton*>(widget)->setColor(prop->get<Vector4>()); break;
 			default: LOG_WARNING("Unknown property type for property " << prop->getName() << "!");
 			}
+			
+			widget->blockSignals(false);
 		}
 	}
 }

@@ -69,7 +69,7 @@ void LevelWidget::paintGL()
 		m_levelNeedsInit = false;
 	}
 
-	m_level->update(m_platform, 0.0f);
+	m_level->update(m_platform, 1.0f/60.0f);
 
 	auto render = getRenderer();
 	render->clear(57.0f/255.0f, 57.0f/255.0f, 57.0f/255.0f, true);

@@ -5,9 +5,13 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <ThreadPool.h>
+
 int main(int argc, char *argv[])
 {
-	QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+	Neo::ThreadPool::start();
+	
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
     

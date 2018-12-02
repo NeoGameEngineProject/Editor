@@ -25,6 +25,7 @@ public:
 	std::shared_ptr<Level> getLevel() { return m_level; }
 	CameraBehavior& getCamera() { return m_camera; }
 	Platform& getPlatform() { return m_platform; }
+	void begin(Behavior* b) { b->begin(m_platform, *getRenderer(), *m_level); }
 	
 	bool event(QEvent* e) override;
 	

@@ -18,6 +18,7 @@ set(DISABLE_RENDER_THREAD TRUE)
 set(OpenGL_GL_PREFERENCE LEGACY)
 set(ENABLE_OPENGL_RENDERER TRUE)
 set(ENABLE_DUMMY_PLATFORM TRUE)
+set(DISABLE_MULTITHREAD TRUE)
 
 add_subdirectory(SDK EXCLUDE_FROM_ALL)
 
@@ -36,9 +37,15 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt5Widgets CONFIG REQUIRED)
 find_package(Qt5OpenGL CONFIG REQUIRED)
 
-add_definitions(-D__gl3w_h_)
+add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
 add_executable(NeoEditor WIN32 ${SOURCES} ${UI} ${IMGUI_SOURCES} BreezeStyleSheets/breeze.qrc)
-target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL NeoEngine)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
+else()
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL NeoEngine NeoScript)
+endif()
+
 target_include_directories(NeoEditor PUBLIC src src/ImGuizmo imgui-external)
 
 add_dependencies(NeoEditor build-shaders)

@@ -102,6 +102,18 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 		auto propItem = new QTreeWidgetItem(title, QStringList() << prop->getName().c_str());
 		switch(prop->getType())
 		{
+		case BOOL: 
+		{
+			QCheckBox* widget;
+			setItemWidget(propItem, 1, widget = new QCheckBox(this));
+			
+			connect(widget, qOverload<int>(&QCheckBox::stateChanged), [prop, b](int value) mutable {
+				prop->set(value == Qt::CheckState::Checked);
+				b->propertyChanged(prop);
+			});
+		}
+		break;
+			
 		case INTEGER: 
 		{
 			QSpinBox* widget;
@@ -225,6 +237,7 @@ void ObjectWidget::updateObject(ObjectHandle h)
 			
 			switch(prop->getType())
 			{
+			case BOOL: reinterpret_cast<QCheckBox*>(widget)->setCheckState(prop->get<bool>() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked); break;
 			case INTEGER: reinterpret_cast<QSpinBox*>(widget)->setValue(prop->get<int>()); break;
 			case FLOAT: reinterpret_cast<QDoubleSpinBox*>(widget)->setValue(prop->get<float>()); break;
 			case VECTOR2: reinterpret_cast<VectorWidget<Neo::Vector2>*>(widget)->setValue(prop->get<Vector2>()); break;

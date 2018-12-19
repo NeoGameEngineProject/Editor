@@ -3,6 +3,7 @@
 #include <qsurface.h>
 
 #include "platform/OpenGLWidget.h"
+#include "project/Project.h"
 
 #include <Level.h>
 #include <QFileDialog>
@@ -10,6 +11,7 @@
 
 #include <Log.h>
 #include <Object.h>
+#include <LevelGameState.h>
 
 using namespace std;
 
@@ -76,6 +78,19 @@ MainWindow::MainWindow(QWidget *parent) :
 		emit levelChanged();
 	});
 	
+	connect(this, &MainWindow::createProject, [this](QString file) {
+
+		LOG_INFO("Creating project in: " << file.toStdString());
+		m_currentProject = std::make_unique<Project>(std::move(Project::create(file.toUtf8().data())));
+	});
+	
+	connect(this, &MainWindow::openProject, [this](QString file) {
+		LOG_INFO("Creating project in: " << file.toStdString());
+		m_currentProject = std::make_unique<Project>(file.toUtf8().data());
+		m_currentProject->buildDebug();
+		emit behaviorsChanged();
+	});
+	
 	connect(this, &MainWindow::saveLevel, [this](QString file) {
 		
 		LOG_INFO("Saving to file: " << file.toStdString());
@@ -96,6 +111,9 @@ MainWindow::MainWindow(QWidget *parent) :
 		
 		for(auto& b : Neo::Behavior::registeredBehaviors())
 		{
+			if(!b->isEditorVisible())
+				continue;
+			
 			auto action = menu->addAction(b->getName());
 			action->setObjectName(b->getName());
 			
@@ -153,7 +171,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->levelTree->levelChangedSlot();
 		ui->objectWidget->updateObject(h);
 	});
-
+	
 	connect(ui->actionEmpty, &QAction::triggered, [this]() {
 		
 		createObject(*ui->sceneEditor->getLevel(), "Object");
@@ -226,6 +244,30 @@ MainWindow::MainWindow(QWidget *parent) :
 		emit levelChanged();
 	});
 	
+	connect(ui->actionPlay, &QAction::triggered, [this]() {
+		
+		if(m_currentProject != nullptr)
+		{
+			m_currentProject->buildDebug();
+			
+			auto* game = m_currentProject->getGameState();
+			
+			// Load scene into buffer and and load into the game
+			// This ensures all behaviors are loaded correctly
+			// TODO Shallow copy so only objects are duplicated but not assets!
+			{
+				std::stringstream buffer;
+				ui->sceneEditor->getLevel()->serialize(buffer);
+				game->getLevel().deserialize(buffer);
+			}
+			
+			ui->gamePlayer->playGame(game);
+						
+			emit behaviorsChanged();
+			emit playGame();
+		}
+	});
+	
 	emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 	
 	// Create behavior menu
@@ -275,11 +317,29 @@ void MainWindow::resizeEvent(QResizeEvent* e)
 
 void MainWindow::openLevelSlot()
 {
-	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("Neo Level (*.nlv);;COLLADA DAE (*.dae)"));
+	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("All Supported (*.nlv *.dae *.3ds *.obj);;Neo Level (*.nlv);;Collada DAE (*.dae)"));
 	if(file.isEmpty())
 		return;
 	
 	emit openLevel(file);
+}
+
+void MainWindow::createProjectSlot()
+{
+	auto file = QFileDialog::getExistingDirectory(this, tr("Select Project Directory"), ".");
+	if(file.isEmpty())
+		return;
+	
+	emit createProject(file);
+}
+
+void MainWindow::openProjectSlot()
+{
+	auto file = QFileDialog::getExistingDirectory(this, tr("Select Project Directory"), ".");
+	if(file.isEmpty())
+		return;
+	
+	emit openProject(file);
 }
 
 void MainWindow::saveLevelAsSlot()

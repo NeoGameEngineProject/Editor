@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <QOpenGLContext>
+#include <QApplication>
+#include <QDir>
 
 #ifdef __linux__
 #include <QtPlatformHeaders/QGLXNativeContext>
@@ -48,4 +50,12 @@ void OpenGLWidget::paintGL()
 	assert(m_render != nullptr);
 	m_render->clear(1, 0, 1, 1);
 	m_render->swapBuffers();
+}
+
+std::string OpenGLWidget::getShareDirectory()
+{
+	if(!QDir("assets").exists())
+		return (QApplication::applicationDirPath() + ".." + QDir::separator() + "share" + QDir::separator() + "NeoEditor" + QDir::separator() + "assets" + QDir::separator()).toStdString();
+	
+	return std::string("assets") + QDir::separator().toLatin1();
 }

@@ -10,6 +10,7 @@
 #include <ImGuizmo.h>
 
 #include <QApplication>
+#include <QDir>
 
 using namespace Neo;
 
@@ -28,8 +29,9 @@ void EditorWidget::initializeGL()
 	
 	ImGuiIO& io = ImGui::GetIO();
 	
-	io.DisplayFramebufferScale.x = 2.0f;
-	io.DisplayFramebufferScale.y = 2.0f;
+	io.DisplayFramebufferScale.x = devicePixelRatioF()*2;
+	io.DisplayFramebufferScale.y = devicePixelRatioF()*2;
+	ImGui::GetStyle().ScaleAllSizes(devicePixelRatioF() * 0.7f);
 	
 	io.DisplaySize.x = width();
 	io.DisplaySize.y = height();
@@ -37,16 +39,15 @@ void EditorWidget::initializeGL()
 	ImGui_ImplOpenGL3_Init("#version 150");
 	
 	ImGui::StyleColorsDark();
-	ImGui::GetStyle().ScaleAllSizes(devicePixelRatioF() * 0.75f);
 
 	ImGuizmo::SetRect(0, 0, width(), height());
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetOrthographic(false);
 
 	auto lvl = getLevel();
-	m_objectTextures[0] = lvl->loadTexture("assets/light.png");
-	m_objectTextures[1] = lvl->loadTexture("assets/camera.png");
-	m_objectTextures[2] = lvl->loadTexture("assets/sound.png");
+	m_objectTextures[0] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/light.png").toUtf8().data());
+	m_objectTextures[1] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/camera.png").toUtf8().data());
+	m_objectTextures[2] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/sound.png").toUtf8().data());
 
 	auto render = getRenderer();
 	m_objectTextures[0]->setID(render->createTexture(m_objectTextures[0]));

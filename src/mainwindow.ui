@@ -42,6 +42,14 @@
      <addaction name="actionLevel"/>
      <addaction name="actionProject"/>
     </widget>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>&amp;New</string>
+     </property>
+     <addaction name="actionNewProject"/>
+     <addaction name="actionNewLevel"/>
+    </widget>
+    <addaction name="menuNew"/>
     <addaction name="menuOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_Level_As"/>
@@ -88,6 +96,7 @@
    <addaction name="actionRotate"/>
    <addaction name="actionScale"/>
    <addaction name="separator"/>
+   <addaction name="actionPlay"/>
   </widget>
   <widget class="QDockWidget" name="sceneDock">
    <property name="sizePolicy">
@@ -223,6 +232,24 @@
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <widget class="Neo::GameWidget" name="gamePlayer">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -365,22 +392,47 @@
   </action>
   <action name="actionEmpty">
    <property name="text">
-    <string>Empty</string>
+    <string>&amp;Empty</string>
    </property>
   </action>
   <action name="actionLight">
    <property name="text">
-    <string>Light</string>
+    <string>&amp;Light</string>
    </property>
   </action>
   <action name="actionCamera">
    <property name="text">
-    <string>Camera</string>
+    <string>&amp;Camera</string>
    </property>
   </action>
   <action name="actionSound">
    <property name="text">
-    <string>Sound</string>
+    <string>&amp;Sound</string>
+   </property>
+  </action>
+  <action name="actionNewProject">
+   <property name="text">
+    <string>&amp;Project</string>
+   </property>
+  </action>
+  <action name="actionNewLevel">
+   <property name="text">
+    <string>&amp;Level</string>
+   </property>
+  </action>
+  <action name="actionPlay">
+   <property name="icon">
+    <iconset theme="media-playback-start">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+   <property name="toolTip">
+    <string>Play the game</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>
@@ -407,6 +459,11 @@
    <slots>
     <slot>setObject(ObjectHandle)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>Neo::GameWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header location="global">platform/GameWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -571,6 +628,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionNewProject</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>createProjectSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionProject</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openProjectSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>levelChanged()</signal>
@@ -581,5 +670,7 @@
   <slot>saveLevelSlot()</slot>
   <slot>saveLevelAsSlot()</slot>
   <slot>appendSceneSlot()</slot>
+  <slot>createProjectSlot()</slot>
+  <slot>openProjectSlot()</slot>
  </slots>
 </ui>

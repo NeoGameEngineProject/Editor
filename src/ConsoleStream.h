@@ -11,7 +11,7 @@ class ConsoleBuffer : public std::basic_streambuf<char, std::char_traits<char>>
 {
 	typedef std::char_traits<char> Traits;
 
-	static const size_t BUF_SIZE = 128;
+	static const size_t BUF_SIZE = 512;
 	char m_buffer[BUF_SIZE];
 	QPlainTextEdit* m_output = nullptr;
 

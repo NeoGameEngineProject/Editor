@@ -29,8 +29,8 @@ void EditorWidget::initializeGL()
 	
 	ImGuiIO& io = ImGui::GetIO();
 	
-	io.DisplayFramebufferScale.x = devicePixelRatioF()*2;
-	io.DisplayFramebufferScale.y = devicePixelRatioF()*2;
+	io.DisplayFramebufferScale.x = devicePixelRatioF();
+	io.DisplayFramebufferScale.y = devicePixelRatioF();
 	ImGui::GetStyle().ScaleAllSizes(devicePixelRatioF() * 0.7f);
 	
 	io.DisplaySize.x = width();
@@ -192,7 +192,7 @@ void EditorWidget::paintGL()
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::Begin(tr("Statistics").toUtf8().data());
-	ImGui::Text("Statistics");
+	ImGui::Text("Draw Calls: %d\nTriangles: %d", getRenderer()->getDrawCallCount(), getRenderer()->getFaceCount());
 	ImGui::End();
 	
 	ImGuizmo::BeginFrame();

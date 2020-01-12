@@ -114,13 +114,28 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 		}
 		break;
 			
-		case INTEGER: 
+		case INTEGER:
 		{
 			QSpinBox* widget;
 			setItemWidget(propItem, 1, widget = new QSpinBox(this));
 			
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
+			
+			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop, b](int value) mutable {
+				prop->set(value);
+				b->propertyChanged(prop);
+			});
+		}
+		break;
+		
+		case UNSIGNED_INTEGER:
+		{
+			QSpinBox* widget;
+			setItemWidget(propItem, 1, widget = new QSpinBox(this));
+			
+			widget->setSingleStep(1);
+			widget->setRange(std::numeric_limits<unsigned int>::lowest(), std::numeric_limits<unsigned int>::max());
 			
 			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop, b](int value) mutable {
 				prop->set(value);
@@ -239,6 +254,7 @@ void ObjectWidget::updateObject(ObjectHandle h)
 			{
 			case BOOL: reinterpret_cast<QCheckBox*>(widget)->setCheckState(prop->get<bool>() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked); break;
 			case INTEGER: reinterpret_cast<QSpinBox*>(widget)->setValue(prop->get<int>()); break;
+			case UNSIGNED_INTEGER: reinterpret_cast<QSpinBox*>(widget)->setValue(prop->get<unsigned int>()); break;
 			case FLOAT: reinterpret_cast<QDoubleSpinBox*>(widget)->setValue(prop->get<float>()); break;
 			case VECTOR2: reinterpret_cast<VectorWidget<Neo::Vector2>*>(widget)->setValue(prop->get<Vector2>()); break;
 			case VECTOR3: reinterpret_cast<VectorWidget<Neo::Vector3>*>(widget)->setValue(prop->get<Vector3>()); break;

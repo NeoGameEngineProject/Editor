@@ -24,12 +24,20 @@ class OpenGLWidget : public QOpenGLWidget
 public:
 	OpenGLWidget(QWidget* parent);
 
+	void beginFrame();
+	float endFrame();
+
+	float getDeltaTime() const { return m_dt; }
+
 protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);
 	virtual void paintGL();
 
 	PlatformRenderer* getRenderer() { return m_render.get(); }
+
+	long long m_frameBeginTime = 0;
+	float m_dt = 0.0f;
 };
 
 }

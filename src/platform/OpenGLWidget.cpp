@@ -51,3 +51,20 @@ void OpenGLWidget::paintGL()
 	m_render->clear(1, 0, 1, 1);
 	m_render->swapBuffers();
 }
+
+void OpenGLWidget::beginFrame()
+{
+	using namespace std;
+	using namespace chrono;
+	m_frameBeginTime = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+float OpenGLWidget::endFrame()
+{
+	using namespace std;
+	using namespace chrono;
+	const auto t = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+	m_dt = static_cast<float>(t - m_frameBeginTime) / 1000.0f;
+
+	return m_dt;
+}

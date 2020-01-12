@@ -84,6 +84,8 @@ void EditorWidget::updateImGuiInput()
 
 void EditorWidget::paintGL()
 {
+	endFrame();
+	beginFrame();
 	LevelWidget::paintGL();
 
 	// Update selection
@@ -192,7 +194,11 @@ void EditorWidget::paintGL()
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::Begin(tr("Statistics").toUtf8().data());
-	ImGui::Text("Draw Calls: %d\nTriangles: %d", getRenderer()->getDrawCallCount(), getRenderer()->getFaceCount());
+	ImGui::Text("Draw Calls: %d\nTriangles: %d\nFrametime: %f\nFPS: %f",
+				getRenderer()->getDrawCallCount(),
+				getRenderer()->getFaceCount(),
+				getDeltaTime(),
+				1000.0f/getDeltaTime());
 	ImGui::End();
 	
 	ImGuizmo::BeginFrame();

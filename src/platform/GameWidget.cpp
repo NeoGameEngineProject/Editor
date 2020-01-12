@@ -24,7 +24,8 @@ void GameWidget::resizeGL(int w, int h)
 
 void GameWidget::paintGL()
 {
-	OpenGLWidget::paintGL();
+	auto render = getRenderer();
+
 	if(m_game)
 	{
 		if(m_needsInit)
@@ -42,9 +43,18 @@ void GameWidget::paintGL()
 			m_needsInit = false;
 		}
 		
+		render->clear(57.0f/255.0f, 57.0f/255.0f, 57.0f/255.0f, true);
+		render->setCurrentFBO(defaultFramebufferObject());
+
 		m_game->update(m_platform, 1.0f/60.0f);
-		m_game->draw(*m_window.getRenderer());
+		m_game->draw(*render);
 	}
+	else
+	{
+		render->clear(0, 0, 0, true);
+	}
+
+	render->swapBuffers();
 }
 
 void GameWidget::playGame(LevelGameState* state)

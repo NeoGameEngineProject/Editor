@@ -22,6 +22,9 @@ public slots:
 	void stopGame();
 	void pauseGame();
 	
+	bool isPlaying() const { return m_game != nullptr; }
+	LevelGameState* getGame() { return m_game; }
+
 protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);

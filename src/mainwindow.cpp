@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :
 			ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
 		else // Otherwise load compatible format as read-only to prevent accidental conversion
 		{
-			ui->sceneEditor->getLevel()->load(file.toUtf8().data());
+			ui->sceneEditor->getLevel()->load(file.toUtf8().data(), *ui->sceneEditor->getRenderer());
 			m_readOnly = true;
 		}
 		
@@ -284,7 +284,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		emit playGame();
 	});
 	
-	emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
+	// emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 	
 	// Create behavior menu
 	ui->actionAdd_Behavior->setMenu(new QMenu);
@@ -395,7 +395,7 @@ void MainWindow::appendSceneSlot()
 	obj->setParent(level->getRoot());
 	level->getRoot()->addChild(obj);
 	
-	level->load(file.toUtf8().data(), name.c_str());
+	level->load(file.toUtf8().data(), *ui->sceneEditor->getRenderer(), name.c_str());
 	
 	// To trigger re-init
 	ui->sceneEditor->setLevel(level);

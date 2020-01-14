@@ -28,13 +28,12 @@ public:
 	float endFrame();
 
 	float getDeltaTime() const { return m_dt; }
+	PlatformRenderer* getRenderer() { return m_render.get(); }
 
 protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);
 	virtual void paintGL();
-
-	PlatformRenderer* getRenderer() { return m_render.get(); }
 
 	long long m_frameBeginTime = 0;
 	float m_dt = 0.0f;

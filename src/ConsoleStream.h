@@ -55,6 +55,7 @@ protected:
 			data += *c;
 		}
 		m_output->appendPlainText(data);
+		std::cout << data.toStdString() << std::endl;
 	}
 };
 

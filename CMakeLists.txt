@@ -6,17 +6,22 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 )
 
+if(APPLE AND EXISTS /usr/local/opt/qt)
+	list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt")
+endif()
+
 include(CopyFiles)
 
 set(CMAKE_CXX_STANDARD 17)
 set(NEO_BUILD_SHARED_LIBS TRUE)
 set(BUILD_SHARED_LIBS TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+set(CMAKE_MACOSX_RPATH TRUE)
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath .")
 
 if(ENABLE_SANITIZERS)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -fsanitize=undefined")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined")
 endif()
 
 set(NO_DOCS TRUE)
@@ -31,7 +36,7 @@ set(DISABLE_MULTITHREAD TRUE)
 add_subdirectory(SDK)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 copy_files("${CMAKE_CURRENT_SOURCE_DIR}/assets/*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" copy-editor-data)
 
@@ -45,15 +50,22 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5Widgets CONFIG REQUIRED)
-find_package(Qt5OpenGL CONFIG REQUIRED)
-find_package(Qt5Sql CONFIG REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql REQUIRED)
+#find_package(Qt5Widgets CONFIG REQUIRED)
+#find_package(Qt5OpenGL CONFIG REQUIRED)
+#find_package(Qt5Sql CONFIG REQUIRED)
 
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
 add_executable(NeoEditor WIN32 ${SOURCES} ${UI} ${IMGUI_SOURCES} BreezeStyleSheets/breeze.qrc)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if(ENABLE_SANITIZERS)
+	target_compile_options(NeoEditor PUBLIC -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer)
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
 	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
+	target_link_libraries(NeoEditor "-pagezero_size 10000 -image_base 100000000" Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--all_load NeoEngine NeoScript -Wl,-noall_load)
 else()
 	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql NeoEngine NeoScript)
 endif()

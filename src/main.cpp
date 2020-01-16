@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QTextStream>
+#include <QDir>
 
 #include <ThreadPool.h>
 
@@ -11,17 +12,19 @@ int main(int argc, char *argv[])
 {
 	Neo::ThreadPool::start();
 	
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
-    
+	
+	QDir::setCurrent(a.applicationDirPath());
+
 	/*QFile file(":/dark.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);
 	a.setStyleSheet(stream.readAll());*/
 
 	QSurfaceFormat format;
-	format.setDepthBufferSize(24);
+	format.setDepthBufferSize(32);
 	format.setStencilBufferSize(8);
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CoreProfile);

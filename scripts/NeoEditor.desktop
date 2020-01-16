@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Neo Editor
+Exec=NeoEditor
+Icon=neo-icon
+Type=Application
+Path=usr/bin/
+Categories=Graphics;Development;Game;

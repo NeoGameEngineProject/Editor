@@ -33,8 +33,7 @@ void LevelTreeWidget::addObject(ObjectHandle object, QTreeWidgetItem* parent, bo
 	QTreeWidgetItem* item = (onlyChildren ? parent : new ObjectItem(parent, QStringList(object->getName().str()), object));
 	for(auto& child : object->getChildren())
 	{
-		if(child->isActive())
-			addObject(child, item);
+		addObject(child, item, false);
 	}
 }
 

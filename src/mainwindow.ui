@@ -28,7 +28,7 @@
      <x>0</x>
      <y>0</y>
      <width>1182</width>
-     <height>28</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -109,7 +109,7 @@
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>S&amp;cene</string>
+    <string>Scene</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -123,6 +123,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="rootIsDecorated">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -143,7 +146,7 @@
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>Ob&amp;ject</string>
+    <string>Object</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -180,7 +183,7 @@
     <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Sce&amp;ne Editor</string>
+    <string>Scene Editor</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>
@@ -220,7 +223,7 @@
     </sizepolicy>
    </property>
    <property name="windowTitle">
-    <string>&amp;Game</string>
+    <string>Game</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>

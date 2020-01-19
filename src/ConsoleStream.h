@@ -4,6 +4,7 @@
 #include <streambuf>
 #include <ostream>
 
+#include <QScrollBar>
 #include <QPlainTextEdit>
 #include <iostream>
 
@@ -55,6 +56,8 @@ protected:
 			data += *c;
 		}
 		m_output->appendPlainText(data);
+		m_output->verticalScrollBar()->setValue(m_output->verticalScrollBar()->maximum());
+
 		std::cout << data.toStdString() << std::endl;
 	}
 };

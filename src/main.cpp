@@ -12,16 +12,19 @@ int main(int argc, char *argv[])
 {
 	Neo::ThreadPool::start();
 	
-	QApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
 	
 	QDir::setCurrent(a.applicationDirPath());
 
-	/*QFile file(":/dark.qss");
+#if 0
+	QFile file(":/dark.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);
-	a.setStyleSheet(stream.readAll());*/
+	a.setStyleSheet(stream.readAll());
+#endif
 
 	QSurfaceFormat format;
 	format.setDepthBufferSize(32);
@@ -30,7 +33,7 @@ int main(int argc, char *argv[])
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setRenderableType(QSurfaceFormat::OpenGL);
 	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-	format.setSamples(4);
+	// format.setSamples(4);
 
 #ifdef NDEBUG
 	// format.setOption(QSurfaceFormat::DebugContext);

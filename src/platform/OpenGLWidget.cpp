@@ -42,7 +42,7 @@ void OpenGLWidget::initializeGL()
 
 void OpenGLWidget::resizeGL(int w, int h)
 {
-	m_render->setViewport(0, 0, width(), height());
+	m_render->setViewport(0, 0, w, h);
 }
 
 void OpenGLWidget::paintGL()

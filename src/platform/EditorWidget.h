@@ -37,9 +37,11 @@ signals:
 	void objectChanged(ObjectHandle);
 	
 private:
+	void updateDPI();
 	void updateImGuiInput();
 	Vector3 selectionCenter();
-	
+
+	float m_scaledWidth = 0, m_scaledHeight = 0, m_dpiScale = 1;
 	std::vector<ObjectHandle> m_selection;
 	EDITOR_MODE m_mode = EDITOR_TRANSLATE;
 

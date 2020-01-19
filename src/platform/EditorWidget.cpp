@@ -11,6 +11,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDesktopWidget>
 
 using namespace Neo;
 
@@ -20,6 +21,22 @@ EditorWidget::EditorWidget(QWidget* parent):
 
 }
 
+void EditorWidget::updateDPI()
+{
+	// devicePixelRatioF only returns 1.0 everytime. Choose the desktop config if it is bigger instead.
+	const auto oldScale = m_dpiScale;
+	m_dpiScale = std::max(devicePixelRatioF(), QApplication::desktop()->devicePixelRatioF());
+
+	m_scaledWidth = width() * m_dpiScale;
+	m_scaledHeight = height() * m_dpiScale;
+
+	if(oldScale != m_dpiScale)
+		LevelWidget::resizeGL(m_scaledWidth, m_scaledHeight);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.DisplayFramebufferScale = ImVec2(m_dpiScale, m_dpiScale);
+}
+
 void EditorWidget::initializeGL()
 {
 	LevelWidget::initializeGL();
@@ -27,19 +44,9 @@ void EditorWidget::initializeGL()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	
-	ImGuiIO& io = ImGui::GetIO();
-	
-	io.DisplayFramebufferScale.x = devicePixelRatioF();
-	io.DisplayFramebufferScale.y = devicePixelRatioF();
-	ImGui::GetStyle().ScaleAllSizes(devicePixelRatioF() * 0.7f);
-	
-	io.DisplaySize.x = width();
-	io.DisplaySize.y = height();
-	
 	ImGui_ImplOpenGL3_Init("#version 150");
 	
 	ImGui::StyleColorsDark();
-
 	ImGuizmo::SetRect(0, 0, width(), height());
 	ImGuizmo::Enable(true);
 	ImGuizmo::SetOrthographic(false);
@@ -57,14 +64,21 @@ void EditorWidget::initializeGL()
 
 void EditorWidget::resizeGL(int w, int h)
 {
+	updateDPI();
+
+	w *= m_dpiScale;
+	h *= m_dpiScale;
+
+	m_scaledWidth = w;
+	m_scaledHeight = h;
+
 	LevelWidget::resizeGL(w, h);
 	
 	ImGuiIO& io = ImGui::GetIO();
-	
 	io.DisplaySize.x = width();
 	io.DisplaySize.y = height();
 	
-	ImGuizmo::SetRect(0, 0, w, h);
+	ImGuizmo::SetRect(0, 0, width(), height());
 }
 
 void EditorWidget::updateImGuiInput()
@@ -85,8 +99,10 @@ void EditorWidget::updateImGuiInput()
 void EditorWidget::paintGL()
 {
 	endFrame();
+	
+	updateDPI();
+
 	beginFrame();
-	LevelWidget::paintGL();
 
 	// Update selection
 	auto& input = getPlatform().getInputContext();
@@ -100,7 +116,7 @@ void EditorWidget::paintGL()
 		auto& camera = getCamera();
 
 		Vector3 origin = camera.getParent()->getPosition();
-		Vector3 direction = camera.getUnProjectedPoint(Vector3(mousepos.x, height() - mousepos.y, 1));
+		Vector3 direction = camera.getUnProjectedPoint(Vector3(mousepos.x*m_dpiScale, (height() - mousepos.y)*m_dpiScale, 1));
 		direction = (direction - origin).getNormalized();
 
 		Vector3 hit;
@@ -140,7 +156,7 @@ void EditorWidget::paintGL()
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2(width(), height()));
 	
-	ImGui::Begin("", nullptr, ImGuiWindowFlags_NoTitleBar
+	ImGui::Begin(" ", nullptr, ImGuiWindowFlags_NoTitleBar
 						| ImGuiWindowFlags_NoResize
 						| ImGuiWindowFlags_NoScrollbar
 						| ImGuiWindowFlags_NoInputs
@@ -158,13 +174,13 @@ void EditorWidget::paintGL()
 			else continue;
 
 			const float iconSize = 64;
-			auto p = getCamera().getProjectedPoint(obj.getPosition());
+			auto p = getCamera().getProjectedPoint(obj.getTransform().getTranslationPart()) / m_dpiScale;
 			p.y = height() - p.y;
 
 			p += Vector3(-iconSize/2, -iconSize/2, 0);
 
 			// TODO Make icon size configurable!
-			if(p.x <= width() + iconSize && p.y <= height() + iconSize && p.z < 1.0f)
+			if(p.x <= width() + iconSize && p.y <= height() + iconSize && (p.z * m_dpiScale) < 1.0f)
 			{
 				// Icon * scale / distance TODO Make configurable
 				float scale = iconSize; // * 10.0f /(obj.getPosition() - getCamera().getParent()->getPosition()).getLength();
@@ -194,7 +210,11 @@ void EditorWidget::paintGL()
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::Begin(tr("Statistics").toUtf8().data());
-	ImGui::Text("Draw Calls: %d\nTriangles: %d\nFrametime: %f\nFPS: %f",
+	ImGui::Text("Draw Calls: %d\n"
+				"Triangles:  %d\n"
+				"Frametime:  %f\n"
+				"FPS:        %f",
+				
 				getRenderer()->getDrawCallCount(),
 				getRenderer()->getFaceCount(),
 				getDeltaTime(),
@@ -202,11 +222,13 @@ void EditorWidget::paintGL()
 	ImGui::End();
 	
 	ImGuizmo::BeginFrame();
-	
+
 	Matrix4x4 id;
 	id.loadIdentity();
 	id.setRotationX(90);
-	
+
+	// ImGuizmo::DrawGrid(getCamera().getViewMatrix().entries, getCamera().getProjectionMatrix().entries, id.entries, 10.f);
+
 	if(!m_selection.empty())
 	{
 		ImGuizmo::Enable(true);
@@ -221,8 +243,6 @@ void EditorWidget::paintGL()
 			default:
 				op = ImGuizmo::OPERATION::TRANSLATE; break;
 		}
-		
-		// ImGuizmo::DrawGrid(getCamera().getViewMatrix().entries, getCamera().getProjectionMatrix().entries, id.entries, 10.f);
 		
 		if(m_selection.size() > 1)
 		{
@@ -272,6 +292,8 @@ void EditorWidget::paintGL()
 
 					object->updateMatrix();
 				}
+
+				object->makeSubtreeDirty();
 			}
 		}
 		else
@@ -290,6 +312,7 @@ void EditorWidget::paintGL()
 			if(delta != Matrix4x4())
 			{			
 				obj->updateFromMatrix();
+				obj->makeSubtreeDirty();
 				emit objectChanged(obj);
 			}
 		}
@@ -298,9 +321,19 @@ void EditorWidget::paintGL()
 	{
 		ImGuizmo::Enable(false);
 	}
-	
+
+	LevelWidget::paintGL();
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	// Clear alpha buffer so we don't blend with the desktop wallpaper
+	glColorMask(false, false, false, true);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColorMask(true, true, true, true);
+
+	glFinish();
 }
 
 void EditorWidget::setSelection(const std::vector<ObjectHandle>& selection)

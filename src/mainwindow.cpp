@@ -392,11 +392,13 @@ void MainWindow::appendSceneSlot()
 	level->makeNameUnique(name);
 	
 	auto obj = level->addObject(name.c_str());
-	obj->setParent(level->getRoot());
-	level->getRoot()->addChild(obj);
+	auto root = level->getRoot();
 	
 	level->load(file.toUtf8().data(), *ui->sceneEditor->getRenderer(), name.c_str());
 	
+	obj->setParent(root);
+	root->addChild(obj);
+
 	// To trigger re-init
 	ui->sceneEditor->setLevel(level);
 	emit levelChanged();

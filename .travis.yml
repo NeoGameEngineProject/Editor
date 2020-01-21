@@ -20,6 +20,6 @@ jobs:
         compiler:
             - clang
 
-        script: CC="/usr/bin/clang-7" CXX="/usr/bin/clang++-7" scripts/build_appimage.sh
+        script: CC="/usr/bin/clang" CXX="/usr/bin/clang++" scripts/build_appimage.sh
         after_failure: cat build-appimage/CMakeFiles/CMakeError.log
 

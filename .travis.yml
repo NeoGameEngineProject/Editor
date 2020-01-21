@@ -12,6 +12,7 @@ jobs:
                 - xxd
                 - swig
                 - libpthread-stubs0-dev
+                - libqt5opengl5-dev
 
         compiler:
             - gcc

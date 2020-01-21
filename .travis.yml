@@ -18,5 +18,6 @@ jobs:
         compiler:
             - clang
         script: scripts/build_appimage.sh
+        after_failure: cat build-appimage/CMakeFiles/CMakeError.log
 
 

@@ -6,7 +6,7 @@ jobs:
         addons:
             apt:
             sources:
-                - george-edison55-precise-backports
+                - george-edison55-bionic-backports
             packages:
                 - cmake-data
                 - cmake

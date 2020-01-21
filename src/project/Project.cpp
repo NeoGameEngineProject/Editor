@@ -1,5 +1,8 @@
 #include "Project.h"
+
 #include <fstream>
+#include <thread>
+
 #include <QDir>
 #include <QApplication>
 #include <QProcess>

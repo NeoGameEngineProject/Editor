@@ -16,13 +16,10 @@ jobs:
                 - libpthread-stubs0-dev
                 - clang-7
                 - llvm-7-dev
-        env:
-            global:
-                - CC="/usr/bin/clang-7"
-                - CXX="/usr/bin/clang++-7"
+
         compiler:
             - clang
 
-        script: scripts/build_appimage.sh
+        script: CC="/usr/bin/clang-7" CXX="/usr/bin/clang++-7" scripts/build_appimage.sh
         after_failure: cat build-appimage/CMakeFiles/CMakeError.log
 

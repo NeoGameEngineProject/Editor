@@ -4,7 +4,7 @@ jobs:
         os: linux
         dist: bionic
         language: cpp
-        before_install:
+        install:
             - sudo apt-get update
             - sudo apt-get install software-properties-common
             - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8611B7A28669BB93

@@ -3,7 +3,6 @@ jobs:
     include:
         os: linux
         language: cpp
-        install: make get-deps cmake gcc g++ clang libgl1-mesa-dev qt5-default xxd swig
         addons:
             apt:
             sources:
@@ -11,7 +10,12 @@ jobs:
             packages:
                 - cmake-data
                 - cmake
+                - libgl1-mesa-dev
+                - qt5-default
+                - xxd
+                - swig
         
         compiler:
             - clang
         script: scripts/build_appimage.sh
+

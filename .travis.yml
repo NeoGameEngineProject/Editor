@@ -6,7 +6,7 @@ jobs:
         addons:
             apt:
             sources:
-                - george-edison55-bionic-backports
+                - ubuntu-toolchain-r-test
             packages:
                 - cmake-data
                 - cmake

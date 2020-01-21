@@ -6,9 +6,9 @@ jobs:
         language: cpp
         addons:
             apt:
-            sources:
+              sources:
                 - ubuntu-toolchain-r-test
-            packages:
+              packages:
                 - libgl1-mesa-dev
                 - qt5-default
                 - xxd

@@ -13,6 +13,7 @@ jobs:
                 - qt5-default
                 - xxd
                 - swig
+                - libpthread-stubs0-dev
         
         compiler:
             - clang

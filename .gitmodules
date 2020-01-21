@@ -1,6 +1,6 @@
 [submodule "SDK"]
 	path = SDK
-	url = git@github.com:NeoGameEngineProject/SDK.git
+	url = https://github.com/NeoGameEngineProject/SDK.git
 [submodule "BreezeStyleSheets"]
 	path = BreezeStyleSheets
 	url = https://github.com/XLTools/BreezeStyleSheets.git

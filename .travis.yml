@@ -2,6 +2,7 @@ language: cpp
 jobs:
     include:
         os: linux
+        dist: bionic
         language: cpp
         addons:
             apt:

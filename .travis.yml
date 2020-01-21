@@ -4,14 +4,6 @@ jobs:
         os: linux
         dist: bionic
         language: cpp
-        install:
-            - sudo apt-get update
-            - sudo apt-get install software-properties-common
-            - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8611B7A28669BB93
-            - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-            - sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-            - sudo apt-get install cmake
-            - cmake --version
         addons:
             apt:
             sources:

@@ -14,12 +14,10 @@ jobs:
                 - xxd
                 - swig
                 - libpthread-stubs0-dev
-                - clang-7
-                - llvm-7-dev
 
         compiler:
-            - clang
+            - gcc
 
-        script: CC="/usr/bin/clang" CXX="/usr/bin/clang++" scripts/build_appimage.sh
+        script: scripts/build_appimage.sh
         after_failure: cat build-appimage/CMakeFiles/CMakeError.log
 

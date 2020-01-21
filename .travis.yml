@@ -1,17 +1,17 @@
 language: cpp
 jobs:
-	include:
-		os: linux
-		language: cpp
-		install: make get-deps cmake gcc g++ clang libgl1-mesa-dev qt5-default xxd swig
-		addons:
-			apt:
-			sources:
-				- george-edison55-precise-backports
-			packages:
-				- cmake-data
-				- cmake
-		
-		compiler:
-			- clang
-		script: scripts/build_appimage.sh
+    include:
+        os: linux
+        language: cpp
+        install: make get-deps cmake gcc g++ clang libgl1-mesa-dev qt5-default xxd swig
+        addons:
+            apt:
+            sources:
+                - george-edison55-precise-backports
+            packages:
+                - cmake-data
+                - cmake
+        
+        compiler:
+            - clang
+        script: scripts/build_appimage.sh

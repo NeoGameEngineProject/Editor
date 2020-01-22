@@ -47,6 +47,7 @@ jobs:
             - secure: gjuBvU55Hnf+J/t3f4xyFlNVq51DcTQvslKQHXwvV4GQg1pZYS2dRtGCkpASja+2MnnJ5MFBUcUctQQMVRC17VQzoccLodFnKfMcOuFLeJwayp943MinUad4KsoOzLQECW06B2hzc90hfkV29TqaQcQM+s6uEOn21gPG4zrIM/k=
           
         after_success:
+            - cd ${TRAVIS_BUILD_DIR}/build-appimage
             - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
             - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
             - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/

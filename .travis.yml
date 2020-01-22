@@ -14,6 +14,7 @@ jobs:
                 - libpthread-stubs0-dev
                 - libqt5opengl5-dev
                 - libqt5sql5-sqlite
+                - rpmbuild
 
         compiler:
             - gcc

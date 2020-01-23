@@ -15,6 +15,8 @@ jobs:
         - libqt5opengl5-dev
         - libqt5sql5-sqlite
         - rpm
+        - openssh-client
+        - sshpass
     compiler:
     - gcc
     install:
@@ -31,11 +33,12 @@ jobs:
     after_failure: cat build-appimage/CMakeFiles/CMakeError.log
     after_success:
     - cd ${TRAVIS_BUILD_DIR}/build-appimage
-    - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
-    - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
-    - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
-    - curl --ftp-create-dirs -T *.sh -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
-    - curl --ftp-create-dirs -T *.AppImage -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    - sshpass -p $PASSWORD sftp $USER@scary-squid.de@ssh.strato.de -b ${TRAVIS_BUILD_DIR}/scripts/upload_to_sftp.sh
+    # - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    # - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    # - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    # - curl --ftp-create-dirs -T *.sh -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    # - curl --ftp-create-dirs -T *.AppImage -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
 env:
   global:
   - secure: EA4BOJPhtKowaadAKktbYRa9Eu8SHH+0E5/wiJI/V3Ap+DsOCOuPLDpmigijTlaz2VHTIVg2MIUjlpRS3Z2BNYesPYm5vLDLRQ7TWl8zOVgWrL7DA6GBz7n8rplNqhzF7ZG1I5aZjnxs74H7Oqvqq+EWpW8YaDAoqwK8uF4OTAS3oI7tUl3N+mu3t33RnSfeKQfV12tFB0BXFPsAoWeIBr4RAgH7ftzJfnJoV0iIsKx4DOQI/iEa1+QTozb0SPAg2Dpn073/D8vy90yZpB5A2dNOVlwBxD/mSKszWqK5s+xbULTiF/PNbDf850+IcoUobTGi6qrrgi1r7KSj4irDg3n02CR1YLPV8ycAq/8sIIXrS7ejjBMKnOMpnzpdT13jtyEFzPv5H+nRXwsGGZ6KAIMK9Ed/72FE+t/YrOSaIwo6ov7bvINodt/bnXPst8mKzZ7QUPq8zt9ghEAnwNWJyZCsVqF92mzAMDA6UKWgwgitH3qdHjVO49v/+cws/PzEz0k7srw6sT3Wvyw9O9xE+zWWHv8Mb74BSKoBVeFytJnlGK5sdM94HmuVUET+PGlI1nGqMBvM3pOgMPeNb9UgBY2PA2xbg/2Pu/SRm8vcBqGHAwC294wXsDqBzC9FMOJJLk8aVnmIKPiIRTXtdWBc+ZCXPvFiIB+1RpL7tt4pp7Q=

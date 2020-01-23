@@ -1,57 +1,42 @@
 language: cpp
 jobs:
-    include:
-        os: linux
-        dist: bionic
-        language: cpp
-        addons:
-            apt:
-              packages:
-                - libgl1-mesa-dev
-                - qt5-default
-                - xxd
-                - swig
-                - libpthread-stubs0-dev
-                - libqt5opengl5-dev
-                - libqt5sql5-sqlite
-                - rpm
-
-        compiler:
-            - gcc
-
-        install:
-            # first we create a directory for the CMake binaries
-            - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-            - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
-            # we use wget to fetch the cmake binaries
-            - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.15.6/cmake-3.15.6-Linux-x86_64.tar.gz
-            # extract the binaries; the output here is quite lengthy,
-            # so we swallow it to not clutter up the travis console
-            - tar -xvf cmake-3.15.6-Linux-x86_64.tar.gz > /dev/null
-            - mv cmake-3.15.6-Linux-x86_64 cmake-install
-            # add both the top-level directory and the bin directory from the archive
-            # to the system PATH. By adding it to the front of the path we hide the
-            # preinstalled CMake with our own.
-            - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
-            # don't forget to switch back to the main build directory once you are done
-            - cd ${TRAVIS_BUILD_DIR}/SDK
-            - git pull origin development
-            - cd ${TRAVIS_BUILD_DIR}
-
-        script: scripts/build_appimage.sh
-        after_failure: cat build-appimage/CMakeFiles/CMakeError.log
-
-        env:
-          global:
-            - secure: gRfErdM33brK8kCNMdWXNqRogtUIHgzRDYAbnxxr5Ux3UjEwSFHaLJKaDGd4lJimZ1HUJEr6Z//pRAuYx497msZ/zdwgzsy1zKXSOEOywA50NMLS7da7feMujZ65Cqwxzmwq6ge6woOClLQmNZo/w6jI89DSXU/JMa5N8/VcMvA=
-            - secure: gjuBvU55Hnf+J/t3f4xyFlNVq51DcTQvslKQHXwvV4GQg1pZYS2dRtGCkpASja+2MnnJ5MFBUcUctQQMVRC17VQzoccLodFnKfMcOuFLeJwayp943MinUad4KsoOzLQECW06B2hzc90hfkV29TqaQcQM+s6uEOn21gPG4zrIM/k=
-          
-        after_success:
-            - cd ${TRAVIS_BUILD_DIR}/build-appimage
-            - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
-            - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
-            - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
-            - curl --ftp-create-dirs -T *.sh -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
-            - curl --ftp-create-dirs -T *.AppImage -u $USER@scary-squid.de:$PASSWORD ftp://scary-squid.de/
-
-
+  include:
+    os: linux
+    dist: bionic
+    language: cpp
+    addons:
+      apt:
+        packages:
+        - libgl1-mesa-dev
+        - qt5-default
+        - xxd
+        - swig
+        - libpthread-stubs0-dev
+        - libqt5opengl5-dev
+        - libqt5sql5-sqlite
+        - rpm
+    compiler:
+    - gcc
+    install:
+    - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+    - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+    - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.15.6/cmake-3.15.6-Linux-x86_64.tar.gz
+    - tar -xvf cmake-3.15.6-Linux-x86_64.tar.gz > /dev/null
+    - mv cmake-3.15.6-Linux-x86_64 cmake-install
+    - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
+    - cd ${TRAVIS_BUILD_DIR}/SDK
+    - git pull origin development
+    - cd ${TRAVIS_BUILD_DIR}
+    script: scripts/build_appimage.sh
+    after_failure: cat build-appimage/CMakeFiles/CMakeError.log
+    after_success:
+    - cd ${TRAVIS_BUILD_DIR}/build-appimage
+    - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    - curl --ftp-create-dirs -T *.sh -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+    - curl --ftp-create-dirs -T *.AppImage -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
+env:
+  global:
+  - secure: EA4BOJPhtKowaadAKktbYRa9Eu8SHH+0E5/wiJI/V3Ap+DsOCOuPLDpmigijTlaz2VHTIVg2MIUjlpRS3Z2BNYesPYm5vLDLRQ7TWl8zOVgWrL7DA6GBz7n8rplNqhzF7ZG1I5aZjnxs74H7Oqvqq+EWpW8YaDAoqwK8uF4OTAS3oI7tUl3N+mu3t33RnSfeKQfV12tFB0BXFPsAoWeIBr4RAgH7ftzJfnJoV0iIsKx4DOQI/iEa1+QTozb0SPAg2Dpn073/D8vy90yZpB5A2dNOVlwBxD/mSKszWqK5s+xbULTiF/PNbDf850+IcoUobTGi6qrrgi1r7KSj4irDg3n02CR1YLPV8ycAq/8sIIXrS7ejjBMKnOMpnzpdT13jtyEFzPv5H+nRXwsGGZ6KAIMK9Ed/72FE+t/YrOSaIwo6ov7bvINodt/bnXPst8mKzZ7QUPq8zt9ghEAnwNWJyZCsVqF92mzAMDA6UKWgwgitH3qdHjVO49v/+cws/PzEz0k7srw6sT3Wvyw9O9xE+zWWHv8Mb74BSKoBVeFytJnlGK5sdM94HmuVUET+PGlI1nGqMBvM3pOgMPeNb9UgBY2PA2xbg/2Pu/SRm8vcBqGHAwC294wXsDqBzC9FMOJJLk8aVnmIKPiIRTXtdWBc+ZCXPvFiIB+1RpL7tt4pp7Q=
+  - secure: lBiBBJnGlqeCx77YTfLJT4iDm9USIHHXV7zaupZY2jqLiyIQuSevbdgAj/PGLlX925BRSyM2AZv5sfKTW4qGZMPgHL3wFvZ246Y8OpV91b/7m5JTy/7244Uy0lX9DUDktV+ISde/WbdO6UuxWm8jf8IClwXt79rv4xRK3zpQax+OC9+1xOyZWHJyXo8ho38HXrcXmOOBv6ouurzB549yW3sK9DEuTUmVdkKTwowsCrMpZTS0e4iHJFdIORQ/tJOnQ+SF+WPDVs3V7ALcAv36SwxxDDBFcGy0b47ApHFLRlZqsXD6iscrlMaWVz7OpbVk4Hx8+dgBlUGBVswalgny15t862j0t5ZeBHxEXuwo52F4w+wTumLOVtbPIbJO3lzZ7nyJeJIVJ8XkpnRHeSeqThs+9KbIc3/73JR4IOywVAW1h04Yguaf5r/NaA2EuSWtk7G46wCFr+6/AHbYzE+92C9zv20jXby6Znb2k7Jd08Ljc1lKu55254PBgzMNVtMMtCWytcp75mX+3qJ6Qq+dxr2sM5CSAoh4fwWtFvq7ALOLyH2bN6t2Y+1qLgDx6ywV6G4LWZSBHWvtA3DplELVd04P1DHszAjl5Xxp+XH8hmTZu8Doer+XqH2bSiJHE0AUj5pjvSJvuGW/e5ayvOG2r/tc0SFXHlMXy0lP2oHOrLs=

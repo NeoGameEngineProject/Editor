@@ -33,7 +33,7 @@ jobs:
     after_failure: cat build-appimage/CMakeFiles/CMakeError.log
     after_success:
     - cd ${TRAVIS_BUILD_DIR}/build-appimage
-    - sshpass -p $PASSWORD sftp $USER@scary-squid.de@ssh.strato.de -b ${TRAVIS_BUILD_DIR}/scripts/upload_to_sftp.sh
+    - sshpass -p $PASSWORD sftp -o User="$USER@scary-squid.de" ssh.strato.de -b ${TRAVIS_BUILD_DIR}/scripts/upload_to_sftp.sh
     # - curl --ftp-create-dirs -T *.deb -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
     # - curl --ftp-create-dirs -T *.tar.gz -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/
     # - curl --ftp-create-dirs -T *.rpm -u $USER@scary-squid.de:$PASSWORD sftp://scary-squid.de/

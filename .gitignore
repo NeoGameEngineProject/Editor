@@ -1,5 +1,6 @@
 build
-build-appimage
+build-*
+.mxe
 assets/glsl
 SDK/*
 *.kdev4

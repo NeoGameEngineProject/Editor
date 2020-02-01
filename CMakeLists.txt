@@ -19,15 +19,17 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_MACOSX_RPATH TRUE)
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
+
+# So tests can run
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_BINARY_DIR}/bin")
 
 if(ENABLE_SANITIZERS)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined")
 endif()
 
-set(NO_DOCS TRUE)
+set(NO_DOCS FALSE)
 set(NO_TESTGAME TRUE)
-set(NO_TESTS TRUE)
+set(NO_TESTS FALSE)
 set(DISABLE_RENDER_THREAD TRUE)
 set(OpenGL_GL_PREFERENCE LEGACY)
 set(ENABLE_OPENGL_RENDERER TRUE)
@@ -58,6 +60,8 @@ find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql REQUIRED)
 
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
 add_executable(NeoEditor WIN32 ${SOURCES} ${UI} ${IMGUI_SOURCES} BreezeStyleSheets/breeze.qrc)
+
+target_link_libraries(NeoEditor "-Wl,-rpath,.,-rpath,../lib")
 
 if(ENABLE_SANITIZERS)
 	target_compile_options(NeoEditor PUBLIC -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer)

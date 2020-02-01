@@ -46,6 +46,7 @@ QString Project::buildDirectory(const QString& buildType)
 
 void Project::enableCurrentDirectory()
 {
+	LOG_INFO("Switching CWD to: " << m_name.toStdString());
 	QDir::setCurrent(m_name);
 }
 
@@ -115,7 +116,8 @@ void Project::reloadPlugin()
 	m_behaviorIdxStart = Neo::Behavior::registeredBehaviors().size();
 	for(auto* behavior : behaviors)
 	{
-		Neo::Behavior::registerBehavior(std::unique_ptr<Neo::Behavior>(behavior));
+		if(!Neo::Behavior::isBehaviorRegistered(behavior->getName()))
+			Neo::Behavior::registerBehavior(std::unique_ptr<Neo::Behavior>(behavior));
 	}
 	m_behaviorIdxEnd = Neo::Behavior::registeredBehaviors().size() - 1;
 	

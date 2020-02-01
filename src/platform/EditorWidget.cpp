@@ -149,6 +149,19 @@ void EditorWidget::paintGL()
 
 	updateImGuiInput();
 	
+	Matrix4x4 id;
+	id.loadIdentity();
+	id.setRotationX(90);
+
+	// First, render grid so everything is in front of it.
+#if 0
+	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
+	// ImGuizmo::DrawGrid(getCamera().getViewMatrix().entries, getCamera().getProjectionMatrix().entries, id.entries, 10.f);
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
 
@@ -222,13 +235,6 @@ void EditorWidget::paintGL()
 	ImGui::End();
 	
 	ImGuizmo::BeginFrame();
-
-	Matrix4x4 id;
-	id.loadIdentity();
-	id.setRotationX(90);
-
-	// ImGuizmo::DrawGrid(getCamera().getViewMatrix().entries, getCamera().getProjectionMatrix().entries, id.entries, 10.f);
-
 	if(!m_selection.empty())
 	{
 		ImGuizmo::Enable(true);

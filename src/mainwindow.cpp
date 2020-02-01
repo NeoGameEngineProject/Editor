@@ -15,6 +15,8 @@
 
 using namespace std;
 
+#define SUPPORTED_SCENE_FORMATS "*.nlv *.dae *.3ds *.obj *.glb *.gltf *.blend *.fbx"
+
 static Neo::ObjectHandle createObject(Neo::Level& level, const char* newName)
 {
 	auto object = level.findInactive();
@@ -53,28 +55,34 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->levelTree->setLevel(level);
 	
 	connect(this, &MainWindow::openLevel, [this](QString file) {
-
-		LOG_INFO("Loading from file: " << file.toStdString());
-		
-		auto level = std::make_shared<Neo::Level>();
-		
-		// Disable physics simulation in the editor
-		level->getPhysicsContext().setEnabled(false);
-		
-		ui->sceneEditor->setLevel(level);
-		ui->levelTree->setLevel(level);
-
-		if(file.endsWith(".nlv")) // Load the native binary format if possible
-			ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
-		else // Otherwise load compatible format as read-only to prevent accidental conversion
+		try
 		{
-			ui->sceneEditor->getLevel()->load(file.toUtf8().data(), *ui->sceneEditor->getRenderer());
-			m_readOnly = true;
+			LOG_INFO("Loading from file: " << file.toStdString());
+			auto level = std::make_shared<Neo::Level>();
+			
+			// Disable physics simulation in the editor
+			level->getPhysicsContext().setEnabled(false);
+			
+			ui->sceneEditor->setLevel(level);
+			ui->levelTree->setLevel(level);
+
+			if(file.endsWith(".nlv")) // Load the native binary format if possible
+				ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
+			else // Otherwise load compatible format as read-only to prevent accidental conversion
+			{
+				ui->sceneEditor->getLevel()->load(file.toUtf8().data());
+				m_readOnly = true;
+			}
+			
+			this->setWindowTitle(tr("Neo Editor") + " - " + file);
+			m_file = file.toStdString();
+		}
+		catch(const std::exception& e)
+		{
+			QMessageBox::critical(this, tr("Could not load level"), e.what());
+			LOG_ERROR(e.what());
 		}
 		
-		this->setWindowTitle(tr("Neo Editor") + " - " + file);
-		m_file = file.toStdString();
-			
 		emit levelChanged();
 	});
 	
@@ -251,8 +259,8 @@ MainWindow::MainWindow(QWidget *parent) :
 			emit behaviorsChanged();
 
 			auto* game = ui->gamePlayer->getGame();
-			if(m_currentProject != nullptr)
-				delete game;
+			// if(m_currentProject != nullptr)
+			//	delete game;
 
 			ui->gamePlayer->stopGame();
 			return;
@@ -333,7 +341,7 @@ void MainWindow::resizeEvent(QResizeEvent* e)
 
 void MainWindow::openLevelSlot()
 {
-	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("All Supported (*.nlv *.dae *.3ds *.obj);;Neo Level (*.nlv);;Collada DAE (*.dae)"));
+	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("All Supported (" SUPPORTED_SCENE_FORMATS ");;Neo Level (*.nlv);;Collada DAE (*.dae)"));
 	if(file.isEmpty())
 		return;
 	
@@ -360,7 +368,7 @@ void MainWindow::openProjectSlot()
 
 void MainWindow::saveLevelAsSlot()
 {
-	auto file = QFileDialog::getSaveFileName(this, tr("Save Level"), ".", tr("Neo Level (*.nlv)"));
+	auto file = QFileDialog::getSaveFileName(this, tr("Save Level"), ".", tr("Supported Format (" SUPPORTED_SCENE_FORMATS ");;Neo Level (*.nlv)"));
 	if(file.isEmpty())
 		return;
 	
@@ -382,7 +390,7 @@ void MainWindow::appendSceneSlot()
 {
 	auto level = ui->sceneEditor->getLevel();
 	
-	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("Neo Level (*.nlv);;COLLADA DAE (*.dae)"));
+	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("All Supported Formats(" SUPPORTED_SCENE_FORMATS ");;Neo Level (*.nlv);;COLLADA DAE (*.dae)"));
 	if(file.isEmpty())
 		return;
 	
@@ -394,7 +402,7 @@ void MainWindow::appendSceneSlot()
 	auto obj = level->addObject(name.c_str());
 	auto root = level->getRoot();
 	
-	level->load(file.toUtf8().data(), *ui->sceneEditor->getRenderer(), name.c_str());
+	level->load(file.toUtf8().data(), name.c_str());
 	
 	obj->setParent(root);
 	root->addChild(obj);

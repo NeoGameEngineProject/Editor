@@ -1,9 +1,9 @@
 #ifndef MAINGAMESTATE_H
 #define MAINGAMESTATE_H
 
-#include <GameState.h>
+#include <LevelGameState.h>
 
-class MainGameState : public Neo::GameState
+class MainGameState : public Neo::LevelGameState
 {
 public:
 	void begin(Neo::Platform & p, Neo::Window& w) override;

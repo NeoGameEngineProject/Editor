@@ -8,6 +8,7 @@
 #include <QEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QMessageBox>
 
 using namespace Neo;
 
@@ -64,7 +65,19 @@ void LevelWidget::paintGL()
 	
 	if(m_levelNeedsInit)
 	{
-		m_level->begin(m_platform, *getRenderer());
+		try
+		{
+			m_level->begin(m_platform, *getRenderer());
+		}
+		catch(const std::exception& e)
+		{
+			LOG_ERROR("Could not begin level: " << e.what());
+			QMessageBox::critical(this, tr("Could not begin Level"), e.what());
+
+			m_level->end();
+			m_levelNeedsInit = false;
+		}
+
 		m_level->setCurrentCamera(&m_camera);
 		m_levelNeedsInit = false;
 	}

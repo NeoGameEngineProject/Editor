@@ -8,10 +8,19 @@
 
 #include <ThreadPool.h>
 
+#include <JsonScene.h>
+#include <AssimpScene.h>
+
 int main(int argc, char *argv[])
 {
 	Neo::ThreadPool::start();
 	
+	Neo::JsonScene jsonLoader;
+	Neo::AssimpScene assimpLoader;
+
+	Neo::LevelLoader::registerLoader(&jsonLoader);
+	Neo::LevelLoader::registerLoader(&assimpLoader);
+
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
@@ -40,7 +49,7 @@ int main(int argc, char *argv[])
 #endif
 
 	QSurfaceFormat::setDefaultFormat(format);
-    
+
 	MainWindow w;
 	w.show();
 	

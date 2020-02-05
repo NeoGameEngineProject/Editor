@@ -382,7 +382,7 @@
   </action>
   <action name="actionAppend_Scene">
    <property name="text">
-    <string>Append &amp;Scene</string>
+    <string>Add Scene as Object</string>
    </property>
   </action>
   <action name="actionDelete_Object">

@@ -12,10 +12,11 @@
 #include <Log.h>
 #include <Object.h>
 #include <LevelGameState.h>
+#include <LevelLoader.h>
 
 using namespace std;
 
-#define SUPPORTED_SCENE_FORMATS "*.nlv *.dae *.3ds *.obj *.glb *.gltf *.blend *.fbx"
+#define SUPPORTED_SCENE_FORMATS "*.*" // "*.jlv *.nlv *.dae *.3ds *.obj *.glb *.gltf *.blend *.fbx"
 
 static Neo::ObjectHandle createObject(Neo::Level& level, const char* newName)
 {
@@ -66,13 +67,21 @@ MainWindow::MainWindow(QWidget *parent) :
 			ui->sceneEditor->setLevel(level);
 			ui->levelTree->setLevel(level);
 
+			Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data());
+#if 0
 			if(file.endsWith(".nlv")) // Load the native binary format if possible
 				ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
+			else if(file.endsWith(".jlv"))
+			{
+				Neo::JsonScene scene;
+				scene.load(*ui->sceneEditor->getLevel(), file.toUtf8().data());
+			}
 			else // Otherwise load compatible format as read-only to prevent accidental conversion
 			{
 				ui->sceneEditor->getLevel()->load(file.toUtf8().data());
 				m_readOnly = true;
 			}
+#endif
 			
 			this->setWindowTitle(tr("Neo Editor") + " - " + file);
 			m_file = file.toStdString();
@@ -103,7 +112,8 @@ MainWindow::MainWindow(QWidget *parent) :
 		
 		LOG_INFO("Saving to file: " << file.toStdString());
 		
-		ui->sceneEditor->getLevel()->saveBinary(file.toUtf8().data());
+		Neo::LevelLoader::save(*ui->sceneEditor->getLevel(), file.toUtf8().data());
+
 		this->setWindowTitle(tr("Neo Editor") + " - " + file);
 
 		m_file = file.toStdString();
@@ -402,7 +412,8 @@ void MainWindow::appendSceneSlot()
 	auto obj = level->addObject(name.c_str());
 	auto root = level->getRoot();
 	
-	level->load(file.toUtf8().data(), name.c_str());
+	Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data(), name.c_str());
+	// level->load(file.toUtf8().data(), name.c_str());
 	
 	obj->setParent(root);
 	root->addChild(obj);

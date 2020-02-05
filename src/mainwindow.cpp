@@ -67,7 +67,11 @@ MainWindow::MainWindow(QWidget *parent) :
 			ui->sceneEditor->setLevel(level);
 			ui->levelTree->setLevel(level);
 
-			Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data());
+			if(!Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data()))
+			{
+				QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
+				return;
+			}
 #if 0
 			if(file.endsWith(".nlv")) // Load the native binary format if possible
 				ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
@@ -112,7 +116,11 @@ MainWindow::MainWindow(QWidget *parent) :
 		
 		LOG_INFO("Saving to file: " << file.toStdString());
 		
-		Neo::LevelLoader::save(*ui->sceneEditor->getLevel(), file.toUtf8().data());
+		if(!Neo::LevelLoader::save(*ui->sceneEditor->getLevel(), file.toUtf8().data()))
+		{
+			QMessageBox::critical(this, tr("Error"), tr("Could not save scene file!"));
+			return;
+		}
 
 		this->setWindowTitle(tr("Neo Editor") + " - " + file);
 
@@ -412,7 +420,12 @@ void MainWindow::appendSceneSlot()
 	auto obj = level->addObject(name.c_str());
 	auto root = level->getRoot();
 	
-	Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data(), name.c_str());
+	if(!Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data(), name.c_str()))
+	{
+		QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
+		return;
+	}
+
 	// level->load(file.toUtf8().data(), name.c_str());
 	
 	obj->setParent(root);

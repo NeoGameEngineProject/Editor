@@ -207,6 +207,30 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			});
 		}
 		break;
+
+		case PATH:
+		{
+			QLineEdit* widget;
+			setItemWidget(propItem, 1, widget = new QLineEdit(this));
+			
+			connect(widget, &QLineEdit::editingFinished, [prop, b, widget] () mutable {
+				prop->set(widget->text().toStdString());
+				b->propertyChanged(prop);
+			});
+		}
+		break;
+		
+		case STRING:
+		{
+			QLineEdit* widget;
+			setItemWidget(propItem, 1, widget = new QLineEdit(this));
+			
+			connect(widget, &QLineEdit::editingFinished, [prop, b, widget] () mutable {
+				prop->set(widget->text().toStdString());
+				b->propertyChanged(prop);
+			});
+		}
+		break;
 		
 		default:
 			setItemWidget(propItem, 1, new QLabel(tr("Unknown type!")));
@@ -260,6 +284,10 @@ void ObjectWidget::updateObject(ObjectHandle h)
 			case VECTOR3: reinterpret_cast<VectorWidget<Neo::Vector3>*>(widget)->setValue(prop->get<Vector3>()); break;
 			case VECTOR4: reinterpret_cast<VectorWidget<Neo::Vector4>*>(widget)->setValue(prop->get<Vector4>()); break;
 			case COLOR: reinterpret_cast<ColorButton*>(widget)->setColor(prop->get<Vector4>()); break;
+
+			case PATH:
+			case STRING: reinterpret_cast<QLineEdit*>(widget)->setText(QString(prop->get<std::string>().c_str())); break;
+
 			default: LOG_WARNING("Unknown property type for property " << prop->getName() << "!");
 			}
 			

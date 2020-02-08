@@ -286,20 +286,32 @@ void EditorWidget::paintGL()
 				else if(m_mode == EDITOR_TRANSLATE)
 				{
 					object->translate(delta.getTranslationPart());
-					object->updateMatrix();
 				}
 				else
 				{
 					Vector3 scale = (selection.getScale() - Vector3(1, 1, 1));
 					object->setScale(object->getScale() + scale);
 					
-					Vector3 translationAxis = (object->getPosition() - selection.getTranslationPart()).getNormalized();
-					object->setPosition(object->getPosition() + (translationAxis * scale));
-
-					object->updateMatrix();
+					Vector3 translationAxis = (object->getGlobalPosition() - selection.getTranslationPart()).getNormalized();
+					object->setPosition(object->getGlobalPosition() + (translationAxis * scale * 5.0f));
 				}
 
+				#if 0
+				Matrix4x4 localRotation = translation * rotation * invTranslation; // * object->getTransform();
+				object->getTransform() = localRotation * object->getTransform(); //(rotation.getInverse() * delta) * localRotation;
+
+				if(!object->getParent().empty())
+					object->getTransform() = object->getParent()->getTransform().getInverse() * object->getTransform();
+
+				object->updateFromMatrix();
+
+				Vector3 scale = (selection.getScale() - Vector3(1, 1, 1));
+				object->setScale(object->getScale() + scale*0.1f);
+				object->translate(delta.getTranslationPart());
+				#endif
+
 				object->makeSubtreeDirty();
+				object->updateMatrix();
 			}
 		}
 		else
@@ -316,7 +328,10 @@ void EditorWidget::paintGL()
 						NULL);
 
 			if(delta != Matrix4x4())
-			{			
+			{
+				if(!obj->getParent().empty())
+					obj->getTransform() = obj->getParent()->getTransform().getInverse() * obj->getTransform();
+
 				obj->updateFromMatrix();
 				obj->makeSubtreeDirty();
 				emit objectChanged(obj);

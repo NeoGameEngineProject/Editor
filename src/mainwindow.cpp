@@ -72,20 +72,6 @@ MainWindow::MainWindow(QWidget *parent) :
 				QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
 				return;
 			}
-#if 0
-			if(file.endsWith(".nlv")) // Load the native binary format if possible
-				ui->sceneEditor->getLevel()->loadBinary(file.toUtf8().data());
-			else if(file.endsWith(".jlv"))
-			{
-				Neo::JsonScene scene;
-				scene.load(*ui->sceneEditor->getLevel(), file.toUtf8().data());
-			}
-			else // Otherwise load compatible format as read-only to prevent accidental conversion
-			{
-				ui->sceneEditor->getLevel()->load(file.toUtf8().data());
-				m_readOnly = true;
-			}
-#endif
 			
 			this->setWindowTitle(tr("Neo Editor") + " - " + file);
 			m_file = file.toStdString();

@@ -83,13 +83,15 @@ private:
 	{
 		QSizePolicy size;
 		auto layout = this->layout();
-		const char* axes[] = {"X", "Y", "Z", "W"};
-		
+		layout->setSpacing(0);
+
+		// const char* axes[] = {"X", "Y", "Z", "W"};
+	
 		size.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
 		
 		for(int i = 0; i < getComponents(); i++)
 		{
-			auto label = new QLabel(axes[i]);
+			// auto label = new QLabel(axes[i]);
 			m_fields[i] = new QDoubleSpinBox(this);
 			m_fields[i]->setSingleStep(0.1);
 			m_fields[i]->setSuffix(QString(" ") + unit);
@@ -99,9 +101,9 @@ private:
 			m_fields[i]->setSizePolicy(size);
 			m_fields[i]->setMinimumWidth(16);
 			
-			label->setMaximumWidth(16);
+			// label->setMaximumWidth(16);
 		
-			layout->addWidget(label);
+			// layout->addWidget(label);
 			layout->addWidget(m_fields[i]);
 			
 			connect(m_fields[i], qOverload<double>(&QDoubleSpinBox::valueChanged), [this](double) { emit valueChanged(); });

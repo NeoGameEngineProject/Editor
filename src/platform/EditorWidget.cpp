@@ -374,3 +374,30 @@ Vector3 EditorWidget::selectionCenter()
 	return center;
 }
 
+void EditorWidget::makePathsRelative(const std::string& dir)
+{
+	QDir d(dir.c_str());
+	auto* level = getLevel().get();
+
+	if(!level) return;
+
+	const std::function<void(Object*)> fn = [&d, &fn](Object* o)
+	{
+		for(auto& b : o->getBehaviors())
+		{
+			for(auto* p : b->getProperties())
+			{
+				if(p->getType() == PATH)
+				{
+					p->set<std::string>(d.relativeFilePath(p->get<std::string>().c_str()).toStdString());
+				}
+			}
+		}
+
+		for(auto& c : o->getChildren())
+			fn(c.get());
+	};
+
+	fn(level->getRoot().get());
+}
+

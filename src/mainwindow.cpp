@@ -101,7 +101,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(this, &MainWindow::saveLevel, [this](QString file) {
 		
 		LOG_INFO("Saving to file: " << file.toStdString());
-		
+		ui->sceneEditor->makePathsRelative(file.toStdString().substr(0, file.lastIndexOf('/') + 1));
+
 		if(!Neo::LevelLoader::save(*ui->sceneEditor->getLevel(), file.toUtf8().data()))
 		{
 			QMessageBox::critical(this, tr("Error"), tr("Could not save scene file!"));
@@ -411,9 +412,14 @@ void MainWindow::appendSceneSlot()
 		QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
 		return;
 	}
-
-	// level->load(file.toUtf8().data(), name.c_str());
 	
+	auto* link = obj->getBehavior("SceneLink");
+	if(link && !m_file.empty())
+	{
+		QDir dir(m_file.substr(0, m_file.find_last_of('/') + 1).c_str());
+		link->setProperty<std::string>("filename", dir.relativeFilePath(file).toStdString());
+	}
+
 	obj->setParent(root);
 	root->addChild(obj);
 

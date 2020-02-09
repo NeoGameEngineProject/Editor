@@ -23,6 +23,8 @@ public:
 	void setMode(EDITOR_MODE mode) { m_mode = mode; }
 	const std::vector<ObjectHandle>& getSelection() const { return m_selection; }
 	
+	void makePathsRelative(const std::string& dir);
+
 protected:
 	virtual void initializeGL();
 	virtual void resizeGL(int w, int h);

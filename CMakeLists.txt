@@ -39,6 +39,12 @@ set(ENABLE_OPENGL_RENDERER TRUE)
 set(ENABLE_DUMMY_PLATFORM TRUE)
 set(DISABLE_MULTITHREAD TRUE)
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# Or else GCC LTO over multiple SO's will destroy the behavior registry
+	# Clang with thinlto works fine though, so leave it enabled for that.
+	set(NO_LTO TRUE)
+endif()
+
 add_subdirectory(SDK)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

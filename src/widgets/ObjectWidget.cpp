@@ -4,6 +4,7 @@
 
 #include <Log.h>
 
+#include <QFileDialog>
 #include <QLineEdit>
 
 using namespace Neo;
@@ -210,11 +211,33 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 
 		case PATH:
 		{
-			QLineEdit* widget;
-			setItemWidget(propItem, 1, widget = new QLineEdit(this));
+			QFrame* frame = new QFrame(this);
+			QLineEdit* widget = new QLineEdit(frame);
+			QPushButton* button = new QPushButton("...", frame);
+
+			frame->setLayout(new QHBoxLayout(frame));
+			frame->layout()->addWidget(widget);
+			frame->layout()->addWidget(button);
+			frame->layout()->setSpacing(0);
+			
+			button->setMaximumWidth(20);
+
+			setItemWidget(propItem, 1, frame);
 			
 			connect(widget, &QLineEdit::editingFinished, [prop, b, widget] () mutable {
 				prop->set(widget->text().toStdString());
+				b->propertyChanged(prop);
+			});
+
+			connect(button, &QPushButton::pressed, [prop, b, widget] () mutable {
+				
+				auto value = QFileDialog::getOpenFileName(widget, tr("Open File"), widget->text(), tr("All Files (*.*)"));
+
+				if(value.isEmpty())
+					return;
+
+				widget->setText(value);
+				prop->set(value.toStdString());
 				b->propertyChanged(prop);
 			});
 		}
@@ -285,7 +308,7 @@ void ObjectWidget::updateObject(ObjectHandle h)
 			case VECTOR4: reinterpret_cast<VectorWidget<Neo::Vector4>*>(widget)->setValue(prop->get<Vector4>()); break;
 			case COLOR: reinterpret_cast<ColorButton*>(widget)->setColor(prop->get<Vector4>()); break;
 
-			case PATH:
+			case PATH: widget = widget->layout()->itemAt(0)->widget();
 			case STRING: reinterpret_cast<QLineEdit*>(widget)->setText(QString(prop->get<std::string>().c_str())); break;
 
 			default: LOG_WARNING("Unknown property type for property " << prop->getName() << "!");

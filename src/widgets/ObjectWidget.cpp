@@ -6,6 +6,7 @@
 
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QtGlobal>
 
 using namespace Neo;
 
@@ -108,7 +109,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			QCheckBox* widget;
 			setItemWidget(propItem, 1, widget = new QCheckBox(this));
 			
-			connect(widget, qOverload<int>(&QCheckBox::stateChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QCheckBox::stateChanged), [prop, b](int value) mutable {
 				prop->set(value == Qt::CheckState::Checked);
 				b->propertyChanged(prop);
 			});
@@ -123,7 +124,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
 			
-			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b](int value) mutable {
 				prop->set(value);
 				b->propertyChanged(prop);
 			});
@@ -138,7 +139,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<unsigned int>::lowest(), std::numeric_limits<unsigned int>::max());
 			
-			connect(widget, qOverload<int>(&QSpinBox::valueChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b](int value) mutable {
 				prop->set(value);
 				b->propertyChanged(prop);
 			});
@@ -154,7 +155,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setRange(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
 			widget->setDecimals(std::numeric_limits<float>::digits10);
 			
-			connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged), [prop, b](double value) mutable {
+			connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [prop, b](double value) mutable {
 				prop->set(static_cast<float>(value));
 				b->propertyChanged(prop);
 			});

@@ -4,3 +4,4 @@ build-*
 assets/glsl
 SDK/*
 *.kdev4
+vcpkg

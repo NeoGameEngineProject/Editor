@@ -18,6 +18,8 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
 	m_redrawTimer(this)
 {
 	connect(&m_redrawTimer, SIGNAL(timeout()), this, SLOT(update()));
+
+	m_redrawTimer.setSingleShot(true);
 	m_redrawTimer.start(1000.0f/60.0f);
 }
 
@@ -64,7 +66,9 @@ float OpenGLWidget::endFrame()
 	using namespace std;
 	using namespace chrono;
 	const auto t = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
-	m_dt = static_cast<float>(t - m_frameBeginTime) / 1000.0f;
+	const auto dt = t - m_frameBeginTime;
+	m_dt = static_cast<float>(dt) / 1000.0f;
 
+	m_redrawTimer.start(1000/60 - m_dt);
 	return m_dt;
 }

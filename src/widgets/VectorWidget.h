@@ -106,7 +106,7 @@ private:
 			// layout->addWidget(label);
 			layout->addWidget(m_fields[i]);
 			
-			connect(m_fields[i], qOverload<double>(&QDoubleSpinBox::valueChanged), [this](double) { emit valueChanged(); });
+			connect(m_fields[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double) { emit valueChanged(); });
 		}
 	}
 	

@@ -18,13 +18,16 @@ set(BUILD_SHARED_LIBS TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_MACOSX_RPATH TRUE)
 
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
+	
+	# So tests can run
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
 
-# So tests can run
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_BINARY_DIR}/bin")
-
-if(ENABLE_SANITIZERS)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined")
+	
+	if(ENABLE_SANITIZERS)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+	endif()
 endif()
 
 set(NO_DOCS FALSE)
@@ -61,12 +64,6 @@ find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql REQUIRED)
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
 add_executable(NeoEditor WIN32 ${SOURCES} ${UI} ${IMGUI_SOURCES} BreezeStyleSheets/breeze.qrc)
 
-target_link_libraries(NeoEditor "-Wl,-rpath,.,-rpath,../lib")
-
-if(ENABLE_SANITIZERS)
-	target_compile_options(NeoEditor PUBLIC -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer)
-endif()
-
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
 	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
@@ -77,6 +74,28 @@ endif()
 
 target_include_directories(NeoEditor PUBLIC src src/ImGuizmo imgui-external)
 add_dependencies(NeoEditor build-shaders copy-editor-data)
+
+if(WIN32)
+	add_custom_command(TARGET NeoEditor POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:Qt5::Widgets>
+			$<TARGET_FILE:Qt5::OpenGL>
+			$<TARGET_FILE:Qt5::Sql>
+			$<TARGET_FILE:Qt5::Core>
+			$<TARGET_FILE:Qt5::Gui>
+
+			$<TARGET_FILE_DIR:NeoEditor>
+	)
+
+	install(FILES
+			$<TARGET_FILE:Qt5::Widgets>
+			$<TARGET_FILE:Qt5::OpenGL>
+			$<TARGET_FILE:Qt5::Sql>
+			$<TARGET_FILE:Qt5::Core>
+			$<TARGET_FILE:Qt5::Gui>
+			
+			DESTINATION bin)
+endif()
 
 install(TARGETS NeoEditor DESTINATION bin)
 install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)

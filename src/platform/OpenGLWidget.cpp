@@ -19,6 +19,7 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
 {
 	connect(&m_redrawTimer, SIGNAL(timeout()), this, SLOT(update()));
 
+	m_redrawTimer.setTimerType(Qt::TimerType::PreciseTimer);
 	m_redrawTimer.setSingleShot(true);
 	m_redrawTimer.start(1000.0f/60.0f);
 }
@@ -69,6 +70,6 @@ float OpenGLWidget::endFrame()
 	const auto dt = t - m_frameBeginTime;
 	m_dt = static_cast<float>(dt) / 1000.0f;
 
-	m_redrawTimer.start(1000/60 - m_dt);
+	m_redrawTimer.start(std::max(0, static_cast<int>(1000/60 - m_dt)));
 	return m_dt;
 }

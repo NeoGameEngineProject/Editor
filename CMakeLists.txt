@@ -18,13 +18,15 @@ set(BUILD_SHARED_LIBS TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_MACOSX_RPATH TRUE)
 
+# add_compile_definitions(VERBOSE_BUILD)
+
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
 	
 	# So tests can run
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
+	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=${SANITIZER}")
 
-	
 	if(ENABLE_SANITIZERS)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
 	endif()
@@ -47,10 +49,22 @@ endif()
 
 add_subdirectory(SDK)
 
+## Lua bindings for Qt5
+set(LUA_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/SDK/NeoScript/luajit-external/src" CACHE "" STRING FORCE)
+set(QT_SCHEMA_DIR "${CMAKE_SOURCE_DIR}/lqt-external/generator/schema" CACHE "" STRING FORCE)
+
+add_subdirectory(lqt-external EXCLUDE_FROM_ALL)
+add_dependencies(qtcore luajit-build)
+
+file(GLOB LQT_SRC lqt-external/common/*.cpp)
+file(GLOB LQT_HPP lqt-external/common/*.hpp)
+file(GLOB LQT_HPP lqt-external/common/*.inl)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 copy_files("${CMAKE_CURRENT_SOURCE_DIR}/assets/*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" copy-editor-data)
+copy_files("${CMAKE_CURRENT_SOURCE_DIR}/plugins/lua/*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" copy-editor-plugins)
 
 file(GLOB_RECURSE SOURCES src/*.c*)
 file(GLOB_RECURSE UI src/*.ui)
@@ -68,7 +82,12 @@ find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql REQUIRED)
 #find_package(Qt5Sql CONFIG REQUIRED)
 
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
-add_executable(NeoEditor WIN32 ${SOURCES} ${UI} ${IMGUI_SOURCES} BreezeStyleSheets/breeze.qrc)
+add_executable(NeoEditor WIN32 ${SOURCES} ${UI} src/neo.qrc ${IMGUI_SOURCES} ${LQT_SRC} ${LQT_HPP} BreezeStyleSheets/breeze.qrc)
+
+## Add lqt as a dependency so plugins can be loaded
+# add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)
+add_dependencies(NeoEditor copy-editor-plugins copy-editor-data)
+add_custom_target(lqt-targets DEPENDS qtcore qtwidgets qtgui)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
 	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
@@ -104,4 +123,14 @@ if(WIN32)
 endif()
 
 install(TARGETS NeoEditor DESTINATION bin)
+
+## Install lqt
+install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui qtwidgets DESTINATION bin)
+
 install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
+install(DIRECTORY plugins DESTINATION bin)
+
+if(INCLUDE_KITS)
+	install(DIRECTORY "SDK/build-linux64-shared/linux64-shared" DESTINATION kits/linux64-shared)
+	install(DIRECTORY "SDK/build-linux64-static/linux64-static" DESTINATION kits/linux64-static)
+endif()

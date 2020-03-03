@@ -8,6 +8,10 @@
 
 #include <ConsoleStream.h>
 #include <project/Project.h>
+#include <plugins/PluginHost.h>
+
+#include <behaviors/CameraBehavior.h>
+#include <Level.h>
 
 namespace Ui 
 {
@@ -21,9 +25,13 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
 	
+	void readSettings();
 	void resetView();
 	void resizeEvent(QResizeEvent* e) override;
 	
+	Neo::Level& getEditorLevel();
+	Neo::CameraBehavior& getEditorCamera();
+
 signals:
 	void openLevel(QString file);
 	void openProject(QString file);
@@ -49,7 +57,12 @@ public slots:
 	void translationTool();
 	void rotationTool();
 	void scaleTool();
-	
+
+	void publishGameSlot();
+	void managePluginsSlot();
+
+	void closeEvent(QCloseEvent *event);
+
 private:
 	Ui::MainWindow *ui;
 	ConsoleStream m_consoleStream;

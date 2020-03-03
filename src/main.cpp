@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDir>
+#include <QIcon>
 
 #include <ThreadPool.h>
 
@@ -28,7 +29,9 @@ int main(int argc, char *argv[])
 	
 	QDir::setCurrent(a.applicationDirPath());
 
-#if 0
+	QIcon::setThemeName("breeze-dark");
+
+#if 1
 	QFile file(":/dark.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);

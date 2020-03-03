@@ -28,7 +28,7 @@
      <x>0</x>
      <y>0</y>
      <width>1182</width>
-     <height>28</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -76,8 +76,22 @@
     <addaction name="separator"/>
     <addaction name="actionAppend_Scene"/>
    </widget>
+   <widget class="QMenu" name="menuProject">
+    <property name="title">
+     <string>Project</string>
+    </property>
+    <addaction name="actionPublish"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionPlugin_Manager"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuProject"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -516,6 +530,16 @@
     <string>F5</string>
    </property>
   </action>
+  <action name="actionPublish">
+   <property name="text">
+    <string>Publish</string>
+   </property>
+  </action>
+  <action name="actionPlugin_Manager">
+   <property name="text">
+    <string>Manage Plugins</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -741,6 +765,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionPublish</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>publishGameSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionPlugin_Manager</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>managePluginsSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>levelChanged()</signal>
@@ -753,5 +809,7 @@
   <slot>appendSceneSlot()</slot>
   <slot>createProjectSlot()</slot>
   <slot>openProjectSlot()</slot>
+  <slot>publishGameSlot()</slot>
+  <slot>managePluginsSlot()</slot>
  </slots>
 </ui>

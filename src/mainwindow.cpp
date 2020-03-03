@@ -5,9 +5,13 @@
 #include "platform/OpenGLWidget.h"
 #include "project/Project.h"
 
+#include <dialogs/PublishDialog.h>
+#include <dialogs/PluginDialog.h>
+
 #include <Level.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 
 #include <Log.h>
 #include <Object.h>
@@ -299,6 +303,27 @@ MainWindow::MainWindow(QWidget *parent) :
 	
 	// emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
 	
+	try
+	{
+		auto pluginDir = (QApplication::applicationDirPath() + "/plugins/lua").toStdString();
+
+		auto& plugins = PluginHost::get();
+		plugins.addModulePath(QApplication::applicationDirPath().toStdString() + "/");
+		plugins.addModulePath((QApplication::applicationDirPath() + "/../lib/").toStdString());
+
+		plugins.setWindow(this);
+		plugins.loadDirectory(pluginDir);
+
+		plugins.getPlugins()[0]("test");
+	}
+	catch(std::exception& e)
+	{
+		LOG_ERROR("Could not load plugins: " << e.what());
+	}
+
+	// Finally: Load settings. Includes dock layout etc., even for plugins.
+	readSettings();
+
 	// Create behavior menu
 	ui->actionAdd_Behavior->setMenu(new QMenu);
 	emit behaviorsChanged();
@@ -307,6 +332,33 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 	delete ui;
+}
+
+Neo::Level& MainWindow::getEditorLevel()
+{
+	return *ui->sceneEditor->getLevel();
+}
+
+Neo::CameraBehavior& MainWindow::getEditorCamera()
+{
+	return ui->sceneEditor->getCamera();
+}
+
+void MainWindow::readSettings()
+{
+	QSettings settings("NeoEngine", "NeoEditor");
+
+	LOG_INFO("Loading config from: " << settings.fileName().toStdString());
+	restoreGeometry(settings.value("geometry").toByteArray());
+	restoreState(settings.value("windowState").toByteArray());
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	QSettings settings("NeoEngine", "NeoEditor");
+	settings.setValue("geometry", saveGeometry());
+	settings.setValue("windowState", saveState());
+	QMainWindow::closeEvent(event);
 }
 
 void MainWindow::resetView()
@@ -382,9 +434,9 @@ void MainWindow::saveLevelAsSlot()
 
 void MainWindow::saveLevelSlot()
 {
-	if(m_readOnly)
+	if(m_readOnly || m_file.empty())
 	{
-		QMessageBox::critical(this, tr("Save"), tr("Can not save: The file is loaded as read-only! Try 'Save As' to select another target."));
+		saveLevelAsSlot();
 		return;
 	}
 
@@ -443,3 +495,14 @@ void MainWindow::scaleTool()
 	ui->sceneEditor->setMode(Neo::EDITOR_SCALE);
 }
 
+void MainWindow::publishGameSlot()
+{
+	PublishDialog dlg;
+	dlg.exec();
+}
+
+void MainWindow::managePluginsSlot()
+{
+	PluginDialog dlg;
+	dlg.exec();
+}

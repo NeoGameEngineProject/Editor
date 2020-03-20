@@ -11,14 +11,17 @@
 
 #include <JsonScene.h>
 #include <AssimpScene.h>
+#include <BinaryScene.h>
 
 int main(int argc, char *argv[])
 {
 	Neo::ThreadPool::start();
 	
+	Neo::BinaryScene binLoader;
 	Neo::JsonScene jsonLoader;
 	Neo::AssimpScene assimpLoader;
 
+	Neo::LevelLoader::registerLoader(&binLoader);
 	Neo::LevelLoader::registerLoader(&jsonLoader);
 	Neo::LevelLoader::registerLoader(&assimpLoader);
 

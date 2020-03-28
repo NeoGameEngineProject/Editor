@@ -6,6 +6,18 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 )
 
+SET(NEOEDITOR_MAJOR_VERSION 0)
+SET(NEOEDITOR_MINOR_VERSION 6)
+SET(NEOEDITOR_PATCH_VERSION 0)
+
+set(NEOEDITOR_PACKAGE "Neo")
+set(NEOEDITOR_VENDOR "Yannick Pflanzer")
+set(NEOEDITOR_VERSION "${NEO_MAJOR_VERSION}.${NEO_MINOR_VERSION}.${NEO_PATCH_VERSION}")
+set(NEOEDITOR_COPYRIGHT "Copyright (c) 2014-2018, ${NEO_VENDOR}.")
+
+set(NEOEDITOR_CMAKE_EXPORT "lib/cmake")
+set(CMAKE_INSTALL_LIBDIR "lib") # To prevent GNUInstallDirs from creating lib64
+
 if(APPLE AND EXISTS /usr/local/opt/qt)
 	list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt")
 endif()
@@ -21,13 +33,16 @@ set(CMAKE_MACOSX_RPATH TRUE)
 # add_compile_definitions(VERBOSE_BUILD)
 
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,.,-rpath,../lib")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,.,-rpath,../lib")
 	
 	# So tests can run
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
 	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=${SANITIZER}")
 
 	if(ENABLE_SANITIZERS)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
 	endif()
 endif()
@@ -40,7 +55,12 @@ set(OpenGL_GL_PREFERENCE LEGACY)
 set(ENABLE_OPENGL_RENDERER TRUE)
 set(ENABLE_DUMMY_PLATFORM TRUE)
 set(DISABLE_MULTITHREAD TRUE)
+set(NO_SYSTEM_AL TRUE)
 
+
+## For now, since clang does not support fat lto objects
+## and dev plugins need to be compilable with debug flags
+set(NO_LTO TRUE)
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	# Or else GCC LTO over multiple SO's will destroy the behavior registry
 	# Clang with thinlto works fine though, so leave it enabled for that.
@@ -86,15 +106,16 @@ add_executable(NeoEditor WIN32 ${SOURCES} ${UI} src/neo.qrc ${IMGUI_SOURCES} ${L
 
 ## Add lqt as a dependency so plugins can be loaded
 # add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)
+
 add_dependencies(NeoEditor copy-editor-plugins copy-editor-data)
-add_custom_target(lqt-targets DEPENDS qtcore qtwidgets qtgui)
+add_custom_target(lqt-targets ALL DEPENDS qtcore qtwidgets qtgui lfs jis gbk lrdb lpeglabel path miniz pinyin utf8)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
-	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive NeoNet)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
-	target_link_libraries(NeoEditor "-pagezero_size 10000 -image_base 100000000" Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--all_load NeoEngine NeoScript -Wl,-noall_load)
+	target_link_libraries(NeoEditor "-pagezero_size 10000 -image_base 100000000" Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--all_load NeoEngine NeoScript -Wl,-noall_load NeoNet)
 else()
-	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql NeoEngine NeoScript)
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql NeoEngine NeoScript NeoNet)
 endif()
 
 target_include_directories(NeoEditor PUBLIC src src/ImGuizmo imgui-external)
@@ -130,7 +151,42 @@ install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui q
 install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
 install(DIRECTORY plugins DESTINATION bin)
 
+macro(install_kit name)
+	install(DIRECTORY "SDK/build-linux64-${name}/linux64-${name}" DESTINATION kits/)
+endmacro()
+
 if(INCLUDE_KITS)
-	install(DIRECTORY "SDK/build-linux64-shared/linux64-shared" DESTINATION kits/linux64-shared)
-	install(DIRECTORY "SDK/build-linux64-static/linux64-static" DESTINATION kits/linux64-static)
+	install_kit("shared-Release")
+	install_kit("shared-Debug")
+	install_kit("static-Release")
+	install_kit("static-Debug")
+
+	#install(DIRECTORY "SDK/build-linux64-shared/linux64-shared-Release" DESTINATION kits/linux64-shared-release)
+	#install(DIRECTORY "SDK/build-linux64-static/linux64-static-Release" DESTINATION kits/linux64-static-release)
+	
+	#install(DIRECTORY "SDK/build-linux64-shared/linux64-shared-Debug" DESTINATION kits/linux64-shared-debug)
+	#install(DIRECTORY "SDK/build-linux64-static/linux64-static-Debug" DESTINATION kits/linux64-static-debug)
 endif()
+
+if(UNIX AND NOT APPLE)
+	set(CPACK_GENERATOR "STGZ;TGZ;DEB;RPM;")
+	set(CPACK_STRIP_FILES OFF) ## Becaause the editor SDK is going to be used for development
+endif()
+
+set(CPACK_PACKAGE_NAME "${NEOEDITOR_PACKAGE}")
+set(CPACK_PACKAGE_VENDOR "${NEOEDITOR_VENDOR}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Neo Editor")
+#set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+#set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+#set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/Data/neo-icon.png")
+set(CPACK_PACKAGE_VERSION_MAJOR "${NEOEDITOR_MAJOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_MINOR "${NEOEDITOR_MINOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "${NEOEDITOR_PATCH_VERSION}")
+set(CPACK_PACKAGE_CONTACT "Neo Project https://github.com/orgs/NeoGameEngineProject")
+
+## Set install path
+#set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/Neo-${NEOEDITOR_VERSION}")
+#set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/Neo)
+
+include(CPack)

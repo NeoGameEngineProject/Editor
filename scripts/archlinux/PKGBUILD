@@ -1,0 +1,44 @@
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=neoeditor
+pkgver=0.6.0
+pkgrel=1
+epoch=
+pkgdesc="The Neo Game Engine Editor and SDK package."
+arch=(x86_64)
+url="https://neo-engine.de/"
+license=('LGPL')
+groups=()
+depends=(qt5-base brotli libibus sndio)
+makedepends=(cmake clang)
+options=(!strip staticlibs)
+
+prepare() {
+	echo "Preparing..."
+}
+
+build() {
+	cd ../../../
+	sh -e scripts/build_linux_kits.sh
+
+	mkdir -p build-linux64-clang
+	cd build-linux64-clang
+
+	CC=clang CXX=clang++ cmake .. -DCMAKE_BUILD_TYPE=Release -DNO_TESTS=TRUE -DINCLUDE_KITS=TRUE -DCMAKE_INSTALL_PREFIX="/opt/NeoEditor"
+	#make -j$(nproc)
+}
+
+check() {
+	echo "Checking..."
+}
+
+package() {
+	echo "Packaging..."
+
+	make -C ../../../build-linux64-clang DESTDIR="$pkgdir" -j$(nproc) install
+
+	mkdir -p "$pkgdir/usr/share/applications"
+	mkdir -p "$pkgdir/usr/share/icons"
+
+	cp ../../../data/NeoEditor.desktop "$pkgdir/usr/share/applications"
+	cp ../../../data/neo-icon.png "$pkgdir/usr/share/icons"
+}

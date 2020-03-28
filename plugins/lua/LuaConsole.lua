@@ -7,7 +7,9 @@ PluginLicense = "LGPL"
 local QtCore = require 'qtcore'
 local QtWidgets = require 'qtwidgets'
 
-local dock = QtWidgets.QDockWidget.new("Lua Console")
+local tr = QtCore.QObject.tr;
+
+local dock = QtWidgets.QDockWidget.new(tr "Lua Console")
 dock:setObjectName("LuaConsoleDock")
 
 local widget = QtWidgets.QWidget()
@@ -31,11 +33,11 @@ lineEdit:connect('2returnPressed()', function(self)
 	local f, err = loadstring(self:text():toStdString());
 
 	if f == nil then
-		print("Error:", err)
+		print(tr "Error:", err)
 	else
 		local success, msg = pcall(f)
 		if not success then
-			print("Error:", msg)
+			print(tr "Error:", msg)
 		end
 	end
 	self:setText("")

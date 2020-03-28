@@ -162,5 +162,7 @@ void Project::configure(const QString& buildType)
 			<< "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE" 
 			<< "-DDISABLE_MULTITHREAD=TRUE" 
 			<< "-DNEO_PLUGIN=TRUE" 
-			<< "-DCMAKE_BUILD_TYPE=" + buildType, buildDirectoryStr);
+			<< "-DCMAKE_BUILD_TYPE=" + buildType
+			<< "-DCMAKE_C_COMPILER=clang"
+			<< "-DCMAKE_CXX_COMPILER=clang++", buildDirectoryStr);
 }

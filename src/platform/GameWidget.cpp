@@ -2,6 +2,7 @@
 #include <Level.h>
 #include <Log.h>
 
+#include <QMessageBox>
 #include <QApplication>
 
 using namespace Neo;
@@ -24,23 +25,42 @@ void GameWidget::resizeGL(int w, int h)
 
 void GameWidget::paintGL()
 {
+	beginFrame();
 	auto render = getRenderer();
 
 	if(m_game)
 	{
 		if(m_needsInit)
 		{
-			m_window.setRenderer(m_platform.createRenderer());
-
-			Level& level = m_game->getLevel();
-			if(level.getCurrentCamera() == nullptr)
+			try
 			{
-				LOG_WARNING("Using fallback camera for game!");
-				level.setCurrentCamera(&m_camera);
+				m_window.setRenderer(m_platform.createRenderer());
+
+				Level& level = m_game->getLevel();
+				if(level.getCurrentCamera() == nullptr)
+				{
+					LOG_WARNING("Using fallback camera for game!");
+					level.setCurrentCamera(&m_camera);
+				}
+
+				m_game->begin(m_platform, m_window);
+
+				// Run first frame in try/catch block in case the loading procedures throw something
+				m_game->update(m_platform, 1.0f/60.0f);
+				m_game->draw(*render);
 			}
-			
-			m_game->begin(m_platform, m_window);
+			catch(std::exception& e)
+			{
+				m_needsInit = false;
+				stopGame();
+
+				QMessageBox::critical(this, tr("Frame Error"), tr("Error playing game: ") + e.what());
+				return;
+			}
+
 			m_needsInit = false;
+			render->swapBuffers();
+			return;
 		}
 		
 		render->clear(57.0f/255.0f, 57.0f/255.0f, 57.0f/255.0f, true);
@@ -55,6 +75,7 @@ void GameWidget::paintGL()
 	}
 
 	render->swapBuffers();
+	endFrame();
 }
 
 void GameWidget::playGame(LevelGameState* state)
@@ -68,6 +89,7 @@ void GameWidget::playGame(LevelGameState* state)
 	
 	m_game = state;
 	m_needsInit = true;
+	repaint();
 }
 
 void GameWidget::stopGame()

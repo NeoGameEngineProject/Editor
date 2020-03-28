@@ -263,42 +263,49 @@ MainWindow::MainWindow(QWidget *parent) :
 	
 	connect(ui->actionPlay, &QAction::triggered, [this]() {
 		
-		if(ui->gamePlayer->isPlaying())
+		try
 		{
-			emit behaviorsChanged();
+			if(ui->gamePlayer->isPlaying())
+			{
+				emit behaviorsChanged();
 
-			auto* game = ui->gamePlayer->getGame();
-			// if(m_currentProject != nullptr)
-			//	delete game;
+				auto* game = ui->gamePlayer->getGame();
+				// if(m_currentProject != nullptr)
+				//	delete game;
 
-			ui->gamePlayer->stopGame();
-			return;
-		}
+				ui->gamePlayer->stopGame();
+				return;
+			}
 
-		Neo::LevelGameState* game = nullptr;
-		if(m_currentProject != nullptr)
-		{
-			m_currentProject->buildDebug();
-			game = m_currentProject->getGameState();
-		}
-		else
-		{
-			game = new Neo::LevelGameState();
-		}
+			Neo::LevelGameState* game = nullptr;
+			if(m_currentProject != nullptr)
+			{
+				m_currentProject->buildDebug();
+				game = m_currentProject->getGameState();
+			}
+			else
+			{
+				game = new Neo::LevelGameState();
+			}
+				
+			// Load scene into buffer and and load into the game
+			// This ensures all behaviors are loaded correctly
+			// TODO Shallow copy so only objects are duplicated but not assets!
+			{
+				std::stringstream buffer;
+				ui->sceneEditor->getLevel()->serialize(buffer);
+				game->getLevel().deserialize(buffer);
+			}
 			
-		// Load scene into buffer and and load into the game
-		// This ensures all behaviors are loaded correctly
-		// TODO Shallow copy so only objects are duplicated but not assets!
-		{
-			std::stringstream buffer;
-			ui->sceneEditor->getLevel()->serialize(buffer);
-			game->getLevel().deserialize(buffer);
+			ui->gamePlayer->playGame(game);
+						
+			emit behaviorsChanged();
+			emit playGame();
 		}
-		
-		ui->gamePlayer->playGame(game);
-					
-		emit behaviorsChanged();
-		emit playGame();
+		catch(std::exception& e)
+		{
+			QMessageBox::critical(this, tr("Error"), tr("Error playing game: ") + e.what());
+		}
 	});
 	
 	// emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");

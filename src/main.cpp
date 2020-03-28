@@ -59,5 +59,13 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	w.show();
 	
-	return a.exec();
+	try
+	{	
+		return a.exec();
+	}
+	catch(std::exception& e)
+	{
+		LOG_ERROR("Uncaught exception: " << e.what());
+		return 1;
+	}
 }

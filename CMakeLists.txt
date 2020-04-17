@@ -50,9 +50,11 @@ endif()
 set(NO_DOCS FALSE)
 set(NO_TESTGAME TRUE)
 set(NO_TESTS FALSE)
-set(DISABLE_RENDER_THREAD TRUE)
 set(OpenGL_GL_PREFERENCE LEGACY)
-set(ENABLE_OPENGL_RENDERER TRUE)
+
+set(ENABLE_OPENGL_RENDERER ON CACHE "" BOOL FORCE)
+set(DISABLE_RENDER_THREAD OFF CACHE "" BOOL FORCE)
+
 set(ENABLE_DUMMY_PLATFORM TRUE)
 set(DISABLE_MULTITHREAD TRUE)
 set(NO_SYSTEM_AL TRUE)
@@ -89,8 +91,6 @@ copy_files("${CMAKE_CURRENT_SOURCE_DIR}/plugins/lua/*" "${CMAKE_RUNTIME_OUTPUT_D
 file(GLOB_RECURSE SOURCES src/*.c*)
 file(GLOB_RECURSE UI src/*.ui)
 
-file(GLOB IMGUI_SOURCES imgui-external/*.c*)
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -118,7 +118,7 @@ else()
 	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql NeoEngine NeoScript NeoNet)
 endif()
 
-target_include_directories(NeoEditor PUBLIC src src/ImGuizmo imgui-external)
+target_include_directories(NeoEditor PUBLIC src)
 add_dependencies(NeoEditor build-shaders copy-editor-data)
 
 if(WIN32)

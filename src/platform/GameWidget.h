@@ -43,7 +43,7 @@ private:
 	public:
 		DummyWindow(): Window(0, 0) {}
 		void activateRendering() override {}
-		void setRenderer(std::unique_ptr<Renderer> && renderer) override { Window::setRenderer(std::move(renderer), nullptr, nullptr, nullptr); }
+		void setRenderer(std::unique_ptr<Renderer> && renderer) override { Window::setRenderer(std::move(renderer), nullptr, nullptr, nullptr, nullptr); }
 		void setTitle(const char * title) override {}
 		void swapBuffers() override {}
 	} m_window;

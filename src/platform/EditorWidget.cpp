@@ -104,6 +104,9 @@ void EditorWidget::paintGL()
 
 	beginFrame();
 
+	// Because in the init method, no defaultFramebufferObject is bound.
+	getRenderer()->setBackbuffer((void*) defaultFramebufferObject());
+
 	// Update selection
 	auto& input = getPlatform().getInputContext();
 	Vector2 mousepos = input.getMouse().getPosition();
@@ -344,8 +347,8 @@ void EditorWidget::paintGL()
 	}
 
 	LevelWidget::paintGL();
-
 	ImGui::Render();
+	
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	// Clear alpha buffer so we don't blend with the desktop wallpaper

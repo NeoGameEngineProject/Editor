@@ -64,7 +64,7 @@ void GameWidget::paintGL()
 		}
 		
 		render->clear(57.0f/255.0f, 57.0f/255.0f, 57.0f/255.0f, true);
-		render->setCurrentFBO(defaultFramebufferObject());
+		render->setBackbuffer((void*) defaultFramebufferObject());
 
 		m_game->update(m_platform, 1.0f/60.0f);
 		m_game->draw(*render);

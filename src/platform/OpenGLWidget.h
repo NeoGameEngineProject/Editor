@@ -21,6 +21,7 @@ class OpenGLWidget : public QOpenGLWidget
 {
 	std::unique_ptr<PlatformRenderer> m_render;
 	QTimer m_redrawTimer;
+
 public:
 	OpenGLWidget(QWidget* parent);
 

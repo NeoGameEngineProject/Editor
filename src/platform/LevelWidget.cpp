@@ -86,7 +86,7 @@ void LevelWidget::paintGL()
 
 	auto render = getRenderer();
 
-	render->setCurrentFBO(defaultFramebufferObject());
+	// render->setCurrentFBO(defaultFramebufferObject());
 	m_level->draw(*render, true);
 	render->swapBuffers();
 }

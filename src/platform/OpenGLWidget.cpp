@@ -26,7 +26,6 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
 
 void OpenGLWidget::initializeGL()
 {
-	/*
 #ifdef __linux__
 		auto context = QOpenGLContext::currentContext();
 		auto nativeContext = reinterpret_cast<QGLXNativeContext*>(context->nativeHandle().data());
@@ -36,11 +35,11 @@ void OpenGLWidget::initializeGL()
 #else
 #error Unsupported platform!
 #endif
-*/
-		m_render = std::make_unique<PlatformRenderer>();
-//		m_render->initialize(width(), height(), nullptr, (void*) (uintptr_t) parentWidget()->winId(), nativeContext->context());
 
-		m_render->initialize(width(), height(), nullptr, nullptr, nullptr);
+		m_render = std::make_unique<PlatformRenderer>();
+		m_render->initialize(width(), height(), (void*) context->defaultFramebufferObject(), nullptr, (void*) winId(), nativeContext->context());
+
+//		m_render->initialize(width(), height(), nullptr, nullptr, nullptr);
 }
 
 void OpenGLWidget::resizeGL(int w, int h)

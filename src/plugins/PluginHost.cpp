@@ -222,6 +222,6 @@ void PluginHost::loadDirectory(const std::string& dir)
 			continue;
 
 		LOG_DEBUG("Loading Lua plugin: " << p.path());
-		load(p.path());
+		load(p.path().string());
 	}
 }

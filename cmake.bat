@@ -1,5 +1,7 @@
 
+rem scripts\install_vcpkg.bat
+
 mkdir build
 cd build
-cmake .. "-DCMAKE_PREFIX_PATH=C:/Qt/5.11.1/msvc2017_64/lib/cmake" -G "Visual Studio 15 2017 Win64" -DNO_VR=TRUE
+cmake .. -G "Visual Studio 15 2017 Win64" -DNO_NET=TRUE -DNO_VR=TRUE -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PROGRAM_PATH=C:/dev/vcpkg/installed/x64-windows/tools/lua -DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
 pause

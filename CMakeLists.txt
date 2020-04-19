@@ -22,6 +22,22 @@ if(APPLE AND EXISTS /usr/local/opt/qt)
 	list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt")
 endif()
 
+#if(WIN32)
+#	find_program(LUA_CMD NAMES luajit.exe lua.exe lua5.1.exe lua51.exe)
+#endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+## Remove the "Debug" and "Release" directory prefixes on Windows
+foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/lib)
+endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
 include(CopyFiles)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -59,7 +75,6 @@ set(ENABLE_DUMMY_PLATFORM TRUE)
 set(DISABLE_MULTITHREAD TRUE)
 set(NO_SYSTEM_AL TRUE)
 
-
 ## For now, since clang does not support fat lto objects
 ## and dev plugins need to be compilable with debug flags
 set(NO_LTO TRUE)
@@ -71,19 +86,32 @@ endif()
 
 add_subdirectory(SDK)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql Svg REQUIRED)
+#find_package(Qt5Widgets CONFIG REQUIRED)
+#find_package(Qt5OpenGL CONFIG REQUIRED)
+#find_package(Qt5Sql CONFIG REQUIRED)
+
 ## Lua bindings for Qt5
 set(LUA_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/SDK/NeoScript/luajit-external/src" CACHE "" STRING FORCE)
+set(LUA_LIBRARY luajit CACHE "" STRING FORCE)
+set(LUA_CMD "${CMAKE_SOURCE_DIR}/SDK/NeoScript/luajit-external/src/luajit" CACHE "" STRING FORCE)
+
 set(QT_SCHEMA_DIR "${CMAKE_SOURCE_DIR}/lqt-external/generator/schema" CACHE "" STRING FORCE)
 
 add_subdirectory(lqt-external EXCLUDE_FROM_ALL)
 add_dependencies(qtcore luajit-build)
 
+## Because it uses STL features which were removed in 17
+set_property(TARGET cpptoxml PROPERTY CXX_STANDARD 11)
+
 file(GLOB LQT_SRC lqt-external/common/*.cpp)
 file(GLOB LQT_HPP lqt-external/common/*.hpp)
 file(GLOB LQT_HPP lqt-external/common/*.inl)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 copy_files("${CMAKE_CURRENT_SOURCE_DIR}/assets/*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" copy-editor-data)
 copy_files("${CMAKE_CURRENT_SOURCE_DIR}/plugins/lua/*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" copy-editor-plugins)
@@ -91,18 +119,8 @@ copy_files("${CMAKE_CURRENT_SOURCE_DIR}/plugins/lua/*" "${CMAKE_RUNTIME_OUTPUT_D
 file(GLOB_RECURSE SOURCES src/*.c*)
 file(GLOB_RECURSE UI src/*.ui)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
-find_package(Qt5 COMPONENTS Core Widgets OpenGL Sql REQUIRED)
-#find_package(Qt5Widgets CONFIG REQUIRED)
-#find_package(Qt5OpenGL CONFIG REQUIRED)
-#find_package(Qt5Sql CONFIG REQUIRED)
-
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
-add_executable(NeoEditor WIN32 ${SOURCES} ${UI} src/neo.qrc ${IMGUI_SOURCES} ${LQT_SRC} ${LQT_HPP} BreezeStyleSheets/breeze.qrc)
+add_executable(NeoEditor WIN32 ${SOURCES} ${UI} src/neo.qrc ${IMGUI_SOURCES} ${LQT_SRC} ${LQT_HPP} BreezeStyleSheets/breeze.qrc src/neo_icon.rc)
 
 ## Add lqt as a dependency so plugins can be loaded
 # add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)
@@ -111,15 +129,15 @@ add_dependencies(NeoEditor copy-editor-plugins copy-editor-data)
 add_custom_target(lqt-targets ALL DEPENDS qtcore qtwidgets qtgui lfs jis gbk lrdb lpeglabel path miniz pinyin utf8)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
-	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive NeoNet)
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql Qt5::WinMain Qt5::Svg "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--whole-archive NeoEngine NeoScript -Wl,--no-whole-archive)
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT APPLE)
-	target_link_libraries(NeoEditor "-pagezero_size 10000 -image_base 100000000" Qt5::Widgets Qt5::OpenGL Qt5::Sql "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--all_load NeoEngine NeoScript -Wl,-noall_load NeoNet)
+	target_link_libraries(NeoEditor "-pagezero_size 10000 -image_base 100000000" Qt5::Widgets Qt5::OpenGL Qt5::Sql Qt5::WinMain Qt5::Svg "-Wl,-rpath ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" -Wl,--all_load NeoEngine NeoScript -Wl,-noall_load)
 else()
-	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql NeoEngine NeoScript NeoNet)
+	target_link_libraries(NeoEditor Qt5::Widgets Qt5::OpenGL Qt5::Sql Qt5::WinMain Qt5::Svg NeoEngine NeoScript)
 endif()
 
 target_include_directories(NeoEditor PUBLIC src)
-add_dependencies(NeoEditor build-shaders copy-editor-data)
+add_dependencies(NeoEditor build-shaders copy-editor-data lqt-targets Materials)
 
 if(WIN32)
 	add_custom_command(TARGET NeoEditor POST_BUILD
@@ -152,14 +170,21 @@ install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
 install(DIRECTORY plugins DESTINATION bin)
 
 macro(install_kit name)
-	install(DIRECTORY "SDK/build-linux64-${name}/linux64-${name}" DESTINATION kits/)
+	if(NOT WIN32)
+		install(DIRECTORY "SDK/build-linux64-${name}/linux64-${name}" DESTINATION kits/)
+	else()
+		install(DIRECTORY "SDK/build-win64-${name}/win64-${name}" DESTINATION kits/)
+	endif()
 endmacro()
 
 if(INCLUDE_KITS)
 	install_kit("shared-Release")
 	install_kit("shared-Debug")
-	install_kit("static-Release")
-	install_kit("static-Debug")
+	
+	if(NOT WIN32)
+		install_kit("static-Release")
+		install_kit("static-Debug")
+	endif()
 
 	#install(DIRECTORY "SDK/build-linux64-shared/linux64-shared-Release" DESTINATION kits/linux64-shared-release)
 	#install(DIRECTORY "SDK/build-linux64-static/linux64-static-Release" DESTINATION kits/linux64-static-release)
@@ -169,17 +194,58 @@ if(INCLUDE_KITS)
 endif()
 
 if(UNIX AND NOT APPLE)
-	set(CPACK_GENERATOR "STGZ;TGZ;DEB;RPM;")
-	set(CPACK_STRIP_FILES OFF) ## Becaause the editor SDK is going to be used for development
+	set(CPACK_GENERATOR "STGZ;TGZ;DEB;RPM")
+	set(CPACK_STRIP_FILES OFF) ## Because the editor SDK is going to be used for development
+elseif(WIN32)
+	set(CPACK_GENERATOR "ZIP;NSIS")
+	set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\NeoEditor.exe")
+	set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Neo Editor.lnk' '\$INSTDIR\\\\bin\\\\NeoEditor.exe' ''")
+	set(CPACK_NSIS_DELETE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Neo Editor.lnk' '\$INSTDIR\\\\bin\\\\NeoEditor.exe' ''")
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+			  DESTINATION bin
+			  FILES_MATCHING PATTERN "webp*.dll")
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+			  DESTINATION bin
+			  FILES_MATCHING PATTERN "libcrypto*.dll")
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+			  DESTINATION bin
+			  FILES_MATCHING PATTERN "icu*.dll")
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+			  DESTINATION bin
+			  FILES_MATCHING PATTERN "pcre*.dll")
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+			  DESTINATION bin
+			  FILES_MATCHING PATTERN "libssl*.dll")
+
+	install(FILES
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bz2.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/harfbuzz.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jasper.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/jpeg62.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/LIBPQ.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pinyin.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bz2.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sqlite3.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tiff.dll
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lzma.dll
+
+			DESTINATION bin)
 endif()
+
+set(CPACK_MONOLITHIC_INSTALL 1)
 
 set(CPACK_PACKAGE_NAME "${NEOEDITOR_PACKAGE}")
 set(CPACK_PACKAGE_VENDOR "${NEOEDITOR_VENDOR}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Neo Editor")
-#set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
-#set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-#set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
-#set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/Data/neo-icon.png")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/data/description.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/data/licenses.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+# set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/data/neo-icon.png")
 set(CPACK_PACKAGE_VERSION_MAJOR "${NEOEDITOR_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${NEOEDITOR_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${NEOEDITOR_PATCH_VERSION}")

@@ -9,4 +9,4 @@
 	url = https://github.com/ocornut/imgui.git
 [submodule "lqt-external"]
 	path = lqt-external
-	url = git@github.com:NeoGameEngineProject/lqt.git
+	url = https://github.com/NeoGameEngineProject/lqt.git

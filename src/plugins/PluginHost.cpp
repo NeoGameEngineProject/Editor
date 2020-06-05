@@ -9,6 +9,7 @@
 #include <lqt-external/common/lqt_common.hpp>
 
 #include <filesystem>
+
 namespace fs = std::filesystem;
 
 #include <Log.h>
@@ -213,9 +214,15 @@ void PluginHost::load(const std::string& file)
 	LOG_DEBUG("Loaded plugin: " << P.getGlobalString("PluginName") << " by " << P.getGlobalString("PluginAuthor"));
 }
 
+#ifdef __APPLE__ // No std::filesystem before Catalina, yay...
+#include <dirent.h>
+#include <sys/types.h>
+#endif
+
 void PluginHost::loadDirectory(const std::string& dir)
 {
 	addModulePath(dir);
+#ifndef __APPLE__
 	for(auto& p: fs::directory_iterator(dir))
 	{
 		if(p.is_directory())
@@ -224,4 +231,23 @@ void PluginHost::loadDirectory(const std::string& dir)
 		LOG_DEBUG("Loading Lua plugin: " << p.path());
 		load(p.path().string());
 	}
+#else
+	DIR* dirptr = opendir(dir.c_str());
+	struct dirent* entry = nullptr;
+
+	if(!dirptr)
+		return;
+
+	while((entry = readdir(dirptr)) != nullptr)
+	{
+		if(entry->d_type & DT_DIR)
+			continue;
+
+		std::string path = dir + "/" + entry->d_name;
+		LOG_DEBUG("Loading Lua plugin: " << path);
+		load(path);
+	}
+	
+	closedir(dirptr);
+#endif
 }

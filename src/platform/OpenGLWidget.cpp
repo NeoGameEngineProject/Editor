@@ -28,16 +28,20 @@ void OpenGLWidget::initializeGL()
 {
 #ifdef __linux__
 		auto context = QOpenGLContext::currentContext();
-		auto nativeContext = reinterpret_cast<QGLXNativeContext*>(context->nativeHandle().data());
+		auto nativeContext = reinterpret_cast<QGLXNativeContext*>(context->nativeHandle().data())->context();
 #elif WIN32
 		auto context = QOpenGLContext::currentContext();
-		auto nativeContext = reinterpret_cast<QWGLNativeContext*>(context->nativeHandle().data());
+		auto nativeContext = reinterpret_cast<QWGLNativeContext*>(context->nativeHandle().data())->context();
+#elif __APPLE__
+		// FIXME Native context is only available in ObjC...
+		auto context = QOpenGLContext::currentContext();
+		auto nativeContext = nullptr;
 #else
 #error Unsupported platform!
 #endif
 
 		m_render = std::make_unique<PlatformRenderer>();
-		m_render->initialize(width(), height(), (void*) context->defaultFramebufferObject(), nullptr, (void*) winId(), nativeContext->context());
+		m_render->initialize(width(), height(), (void*) context->defaultFramebufferObject(), nullptr, (void*) winId(), nativeContext);
 
 //		m_render->initialize(width(), height(), nullptr, nullptr, nullptr);
 }

@@ -119,10 +119,26 @@ file(GLOB_RECURSE SOURCES src/*.c*)
 file(GLOB_RECURSE UI src/*.ui)
 
 add_definitions(-D__gl3w_h_ -DQT_NO_FOREACH)
-add_executable(NeoEditor WIN32 ${SOURCES} ${UI} src/neo.qrc ${IMGUI_SOURCES} ${LQT_SRC} ${LQT_HPP} BreezeStyleSheets/breeze.qrc src/neo_icon.rc)
+
+if(APPLE)
+	set(MACOSX_BUNDLE_ICON_FILE "neo-icon")
+	set_source_files_properties(data/neo-icon.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+	set(MAC_RESOURCES data/neo-icon.icns)
+endif()
+
+add_executable(NeoEditor MACOSX_BUNDLE WIN32 
+	${SOURCES}
+	${UI}
+	src/neo.qrc
+	${IMGUI_SOURCES}
+	${LQT_SRC} 
+	${LQT_HPP}
+	BreezeStyleSheets/breeze.qrc src/neo_icon.rc
+	${MAC_RESOURCES})
 
 ## Add lqt as a dependency so plugins can be loaded
-# add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)
+add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)
 
 add_dependencies(NeoEditor copy-editor-plugins copy-editor-data)
 add_custom_target(lqt-targets ALL DEPENDS qtcore qtwidgets qtgui lfs jis gbk lrdb lpeglabel path miniz pinyin utf8)
@@ -161,7 +177,9 @@ if(WIN32)
 
 			$<TARGET_FILE_DIR:NeoEditor>
 	)
+endif()
 
+if(APPLE OR WIN32)
 	install(FILES
 			$<TARGET_FILE:Qt5::Widgets>
 			$<TARGET_FILE:Qt5::OpenGL>
@@ -172,13 +190,27 @@ if(WIN32)
 			DESTINATION bin)
 endif()
 
-install(TARGETS NeoEditor DESTINATION bin)
+if(NOT APPLE)
+	install(TARGETS NeoEditor
+			RUNTIME DESTINATION bin
+			BUNDLE DESTINATION .)
+endif()
 
 ## Install lqt
-install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui qtwidgets DESTINATION bin)
+if(APPLE)
+	set(APPDIR "${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/")
+	
+	# They will be installed by copying and fixing rpath manually!
+	# install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui qtwidgets DESTINATION ${APPDIR}/MacOS)
 
-install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
-install(DIRECTORY plugins DESTINATION bin)
+	# install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION ${APPDIR}/MacOS)
+	# install(DIRECTORY plugins DESTINATION ${APPDIR}/MacOS)
+else()
+	install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui qtwidgets DESTINATION bin)
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
+	install(DIRECTORY plugins DESTINATION bin)
+endif()
 
 macro(install_kit name)
 	if(NOT WIN32)
@@ -208,8 +240,76 @@ if(UNIX AND NOT APPLE)
 	set(CPACK_GENERATOR "STGZ;TGZ;DEB;RPM")
 	set(CPACK_STRIP_FILES OFF) ## Because the editor SDK is going to be used for development
 elseif(APPLE)
-	set(CPACK_GENERATOR "Bundle") # ;DragNDrop")
+	file(MAKE_DIRECTORY $<TARGET_FILE_DIR:NeoEditor>/platforms/)
+	add_custom_command(TARGET NeoEditor POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:NeoEditor>/platforms/
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:Qt5::Gui>/../../plugins/platforms/libqcocoa.dylib
+			$<TARGET_FILE_DIR:NeoEditor>/platforms/libqcocoa.dylib
+
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE_DIR:Qt5::Gui>/../../plugins/iconengines/libqsvgicon.dylib
+			$<TARGET_FILE_DIR:NeoEditor>/iconengines/libqsvgicon.dylib
+		
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			$<TARGET_FILE:lfs>
+			$<TARGET_FILE:jis>
+			$<TARGET_FILE:gbk>
+			$<TARGET_FILE:lrdb>
+			$<TARGET_FILE:lpeglabel>
+			$<TARGET_FILE:path>
+			$<TARGET_FILE:miniz>
+			$<TARGET_FILE:pinyin>
+			$<TARGET_FILE:utf8>
+			$<TARGET_FILE:qtcore>
+			$<TARGET_FILE:qtgui>
+			$<TARGET_FILE:qtwidgets>
+
+			$<TARGET_FILE_DIR:NeoEditor>
+		
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/
+			$<TARGET_FILE_DIR:NeoEditor>/assets/
+		
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins/
+			$<TARGET_FILE_DIR:NeoEditor>/plugins/
+	)
+
+	include(InstallRequiredSystemLibraries)
+
+	set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin )
+	set(APPS "\${CMAKE_CURRENT_BINARY_DIR}/bin/NeoEditor.app" ) # paths to executables
+	set(DIRS "${CMAKE_CURRENT_BINARY_DIR}/lib") # directories to search for prerequisites
+	set(QT_PLUGINS
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/platforms/libqcocoa.dylib
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/iconengines/libqsvgicon.dylib
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/lfs.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/jis.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/gbk.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/lrdb.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/lpeglabel.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/path.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/miniz.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/pinyin.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/utf8.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/qtcore.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/qtgui.so
+		${CMAKE_BINARY_DIR}/NeoEditor.app/Contents/MacOS/qtwidgets.so
+	)
+
+	install(CODE "
+		include(BundleUtilities)
+		copy_and_fixup_bundle(\"${APPS}\" \"${CMAKE_BINARY_DIR}/NeoEditor.app\" \"${QT_PLUGINS}\" \"${DIRS}\")
+	")
+
 	set(CPACK_BUNDLE_NAME "Neo Editor")
+	set(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/macoslaunch.sh")
+
+#	set(CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_BINARY_DIR}/bin/NeoEditor") # "${CMAKE_CURRENT_SOURCE_DIR}/scripts/macoslaunch.sh")
+	set(CPACK_BUNDLE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/data/neo-icon.png")
+	set(CPACK_BUNDLE_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/scripts/bundle.plist")
+	set(CPACK_GENERATOR "Bundle") # STGZ;TGZ")
 elseif(WIN32)
 	set(CPACK_GENERATOR "ZIP;NSIS")
 	set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\NeoEditor.exe")

@@ -320,8 +320,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 		plugins.setWindow(this);
 		plugins.loadDirectory(pluginDir);
-
-		plugins.getPlugins()[0]("test");
 	}
 	catch(std::exception& e)
 	{

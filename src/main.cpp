@@ -25,20 +25,22 @@ int main(int argc, char *argv[])
 	Neo::LevelLoader::registerLoader(&jsonLoader);
 	Neo::LevelLoader::registerLoader(&assimpLoader);
 
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	//QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);
 	
 	QDir::setCurrent(a.applicationDirPath());
 
+#if 0
 	QIcon::setThemeName("breeze-dark");
 
-#if 1
 	QFile file(":/dark.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);
 	a.setStyleSheet(stream.readAll());
+#else
+	QIcon::setThemeName("breeze");
 #endif
 
 	QSurfaceFormat format;

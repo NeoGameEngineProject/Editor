@@ -26,7 +26,6 @@ public:
 	~MainWindow();
 	
 	void readSettings();
-	void resetView();
 	void resizeEvent(QResizeEvent* e) override;
 	
 	Neo::Level& getEditorLevel();
@@ -62,6 +61,7 @@ public slots:
 	void managePluginsSlot();
 
 	void closeEvent(QCloseEvent *event);
+	void resetView();
 
 private:
 	Ui::MainWindow *ui;

@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/">
+        <file>icons/rotate-action.png</file>
+        <file>icons/translate-action.png</file>
+        <file>icons/scale-action.png</file>
+
         <file>icons/breeze-dark/index.theme</file>
         <file>icons/breeze-dark/actions/24/acrobat.svg</file>
         <file>icons/breeze-dark/actions/24/activities.svg</file>

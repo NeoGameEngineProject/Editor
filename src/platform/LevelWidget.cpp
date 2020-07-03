@@ -41,14 +41,14 @@ void LevelWidget::paintGL()
 	if(hasFocus())
 	{
 		if(input.isKeyDown(Neo::KEY_W))
-			m_cameraObject.translate(Neo::Vector3(0, 0, -1), true);
+			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, -1), true);
 		else if(input.isKeyDown(Neo::KEY_S))
-			m_cameraObject.translate(Neo::Vector3(0, 0, 1), true);
+			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, 1), true);
 		
 		if(input.isKeyDown(Neo::KEY_A))
-			m_cameraObject.translate(Neo::Vector3(-1, 0, 0), true);
+			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(-1, 0, 0), true);
 		else if(input.isKeyDown(Neo::KEY_D))
-			m_cameraObject.translate(Neo::Vector3(1, 0, 0), true);
+			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(1, 0, 0), true);
 		
 		if(input.getMouse().isKeyDown(Neo::MOUSE_BUTTON_RIGHT))
 		{
@@ -68,6 +68,7 @@ void LevelWidget::paintGL()
 		try
 		{
 			m_level->begin(m_platform, *getRenderer());
+			m_cameraObject.begin(m_platform, *getRenderer(), *m_level);
 		}
 		catch(const std::exception& e)
 		{

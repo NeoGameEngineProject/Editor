@@ -18,6 +18,8 @@
 #include <LevelGameState.h>
 #include <LevelLoader.h>
 
+#include <behaviors/SkyboxBehavior.h>
+
 using namespace std;
 
 #define SUPPORTED_SCENE_FORMATS "*.*" // "*.jlv *.nlv *.dae *.3ds *.obj *.glb *.gltf *.blend *.fbx"
@@ -307,9 +309,45 @@ MainWindow::MainWindow(QWidget *parent) :
 			QMessageBox::critical(this, tr("Error"), tr("Error playing game: ") + e.what());
 		}
 	});
+
+	connect(ui->actionLoad_Skybox, &QAction::triggered, [this]() {
+		auto cam = getEditorCamera().getParent();
+		auto path = QFileDialog::getExistingDirectory(this, tr("Open Skybox"), ".");
+
+		if(path.isEmpty())
+			return;
+
+		auto* skybox = cam->getBehavior<Neo::SkyboxBehavior>();
+		if(skybox == nullptr)
+		{
+			skybox = cam->addBehavior<Neo::SkyboxBehavior>();
+		}
+
+		skybox->setTextureBase(path.toStdString() + "/");
+
+		// To trigger re-init
+		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		emit levelChanged();
+	});
 	
-	// emit openLevel("/home/yannick/NeoDev/components/Editor/SDK/testgame/assets/test.dae");
-	
+	// Add movement speed slider
+	auto* speedSlider = new QSlider(Qt::Orientation::Horizontal);
+	speedSlider->setMaximumWidth(128);
+	speedSlider->setMinimum(0);
+	speedSlider->setMaximum(500);
+	speedSlider->setSingleStep(1);
+
+	speedSlider->setValue(ui->sceneEditor->getMovementSpeed() * 100);
+
+	connect(speedSlider, &QSlider::valueChanged, [speedSlider, this]() {
+		ui->sceneEditor->setMovementSpeed(speedSlider->value() / 100.0f);
+	});
+
+	ui->toolBar->addSeparator();
+	ui->toolBar->addWidget(new QLabel(" " + tr("Speed:") + " "));
+	ui->toolBar->addWidget(speedSlider);
+	ui->toolBar->addSeparator();
+
 	try
 	{
 		auto pluginDir = (QApplication::applicationDirPath() + "/plugins/lua").toStdString();

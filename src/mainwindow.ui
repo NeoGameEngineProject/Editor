@@ -88,8 +88,16 @@
     </property>
     <addaction name="actionPlugin_Manager"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionReset_Docks"/>
+    <addaction name="actionLoad_Skybox"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
    <addaction name="menuProject"/>
    <addaction name="menuTools"/>
   </widget>
@@ -403,6 +411,13 @@
    </property>
   </action>
   <action name="actionTranslate">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="neo.qrc">
+     <normaloff>:/icons/translate-action.png</normaloff>:/icons/translate-action.png</iconset>
+   </property>
    <property name="text">
     <string>Translate</string>
    </property>
@@ -414,6 +429,10 @@
    </property>
   </action>
   <action name="actionRotate">
+   <property name="icon">
+    <iconset resource="neo.qrc">
+     <normaloff>:/icons/rotate-action.png</normaloff>:/icons/rotate-action.png</iconset>
+   </property>
    <property name="text">
     <string>Rotate</string>
    </property>
@@ -425,6 +444,10 @@
    </property>
   </action>
   <action name="actionScale">
+   <property name="icon">
+    <iconset resource="neo.qrc">
+     <normaloff>:/icons/scale-action.png</normaloff>:/icons/scale-action.png</iconset>
+   </property>
    <property name="text">
     <string>Scale</string>
    </property>
@@ -540,6 +563,16 @@
     <string>Manage Plugins</string>
    </property>
   </action>
+  <action name="actionReset_Docks">
+   <property name="text">
+    <string>Reset Docks</string>
+   </property>
+  </action>
+  <action name="actionLoad_Skybox">
+   <property name="text">
+    <string>Load Skybox</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -571,7 +604,9 @@
    <header location="global">platform/GameWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="neo.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionLevel</sender>
@@ -781,6 +816,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionReset_Docks</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>resetView()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>335</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>levelChanged()</signal>
@@ -795,5 +846,6 @@
   <slot>openProjectSlot()</slot>
   <slot>publishGameSlot()</slot>
   <slot>managePluginsSlot()</slot>
+  <slot>resetView()</slot>
  </slots>
 </ui>

@@ -28,6 +28,9 @@ public:
 	void begin(Behavior* b) { b->begin(m_platform, *getRenderer(), *m_level); }
 	
 	bool event(QEvent* e) override;
+
+	void setMovementSpeed(float f) { m_movementSpeed = f; }
+	float getMovementSpeed() const { return m_movementSpeed; }
 	
 protected:
 	virtual void initializeGL();
@@ -41,6 +44,7 @@ private:
 
 	Object m_cameraObject;
 	CameraBehavior m_camera;
+	float m_movementSpeed = 1.0f; // Movement speed of the camera
 
 	bool m_levelNeedsInit = false;
 };

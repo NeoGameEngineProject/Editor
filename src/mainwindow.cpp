@@ -238,7 +238,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		obj->addBehavior(std::make_unique<Neo::SoundBehavior>(sound));
 		
 		// To trigger re-init
-		ui->sceneEditor->setLevel(level);
+		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
 	});
 	
@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->sceneEditor->setSelection({});
 		
 		// To trigger re-init
-		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
 	});
 	
@@ -326,7 +326,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		skybox->setTextureBase(path.toStdString() + "/");
 
 		// To trigger re-init
-		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
 	});
 	

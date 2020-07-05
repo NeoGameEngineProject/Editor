@@ -7,6 +7,7 @@
 
 #include <Object.h>
 #include <behaviors/CameraBehavior.h>
+#include <Log.h>
 
 namespace Neo 
 {
@@ -20,6 +21,11 @@ public:
 	{
 		m_level = level;
 		m_levelNeedsInit = true;
+	}
+
+	void setNeedsInit(bool v)
+	{
+		m_levelNeedsInit = v;
 	}
 
 	std::shared_ptr<Level> getLevel() { return m_level; }

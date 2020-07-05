@@ -52,14 +52,15 @@ void EditorWidget::initializeGL()
 	ImGuizmo::SetOrthographic(false);
 
 	auto lvl = getLevel();
+
 	m_objectTextures[0] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/light.png").toUtf8().data());
 	m_objectTextures[1] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/camera.png").toUtf8().data());
 	m_objectTextures[2] = lvl->loadTexture((QApplication::applicationDirPath() + "/assets/sound.png").toUtf8().data());
 
 	auto render = getRenderer();
-	m_objectTextures[0]->setID(render->createTexture(m_objectTextures[0]));
-	m_objectTextures[1]->setID(render->createTexture(m_objectTextures[1]));
-	m_objectTextures[2]->setID(render->createTexture(m_objectTextures[2]));
+	render->createTexture(m_objectTextures[0]);
+	render->createTexture(m_objectTextures[1]);
+	render->createTexture(m_objectTextures[2]);
 }
 
 void EditorWidget::resizeGL(int w, int h)

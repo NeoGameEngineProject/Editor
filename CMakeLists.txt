@@ -316,6 +316,12 @@ elseif(WIN32)
 	set(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Neo Editor.lnk' '\$INSTDIR\\\\bin\\\\NeoEditor.exe' ''")
 	set(CPACK_NSIS_DELETE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Neo Editor.lnk' '\$INSTDIR\\\\bin\\\\NeoEditor.exe' ''")
 
+	install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf
+			  DESTINATION bin)
+
+	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins
+			  DESTINATION bin)
+
 	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
 			  DESTINATION bin
 			  FILES_MATCHING PATTERN "webp*.dll")

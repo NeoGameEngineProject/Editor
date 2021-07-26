@@ -29,6 +29,8 @@ signals:
 private:
 	QTreeWidgetItem* createTransform(ObjectHandle o);
 	QTreeWidgetItem* createBehavior(Behavior* b);
+	QTreeWidgetItem* createCustomBehavior(Behavior* b, QTreeWidgetItem* parent);
+
 	
 	QTreeWidgetItem* findItemWithParent(const std::string& parent, const std::string& name);
 	

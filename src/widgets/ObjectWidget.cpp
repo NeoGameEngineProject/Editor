@@ -8,6 +8,8 @@
 #include <QLineEdit>
 #include <QtGlobal>
 
+#include <string>
+
 using namespace Neo;
 
 template<typename T>
@@ -104,7 +106,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 		auto propItem = new QTreeWidgetItem(title, QStringList() << prop->getName().c_str());
 		switch(prop->getType())
 		{
-		case BOOL: 
+		case BOOL:
 		{
 			QCheckBox* widget;
 			setItemWidget(propItem, 1, widget = new QCheckBox(this));
@@ -186,7 +188,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 		}
 		break;
 		
-		case VECTOR4: 
+		case VECTOR4:
 		{
 			VectorWidget<Neo::Vector4>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector4>(this));
@@ -260,10 +262,24 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			setItemWidget(propItem, 1, new QLabel(tr("Unknown type!")));
 		}
 	}
-		
+
+	// Finally, handle any special cases like "Mesh" behaviors for custom widgets
+	createCustomBehavior(b, title);
+	
 	return title;
 }
 
+QTreeWidgetItem* ObjectWidget::createCustomBehavior(Behavior* b, QTreeWidgetItem* parent)
+{
+	using namespace std::string_literals;
+	if(b->getName() == "Mesh"s)
+	{
+		auto propItem = new QTreeWidgetItem(parent, QStringList() << "Materials");
+		return propItem;
+	}
+
+	return nullptr;
+}
 
 QTreeWidgetItem* ObjectWidget::findItemWithParent(const std::string& parent, const std::string& name)
 {

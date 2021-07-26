@@ -12,6 +12,7 @@
 #include <JsonScene.h>
 #include <AssimpScene.h>
 #include <BinaryScene.h>
+#include <glTFScene.h>
 
 int main(int argc, char *argv[])
 {
@@ -20,12 +21,14 @@ int main(int argc, char *argv[])
 	Neo::BinaryScene binLoader;
 	Neo::JsonScene jsonLoader;
 	Neo::AssimpScene assimpLoader;
+	Neo::glTFScene gltfLoader;
 
 	Neo::LevelLoader::registerLoader(&binLoader);
 	Neo::LevelLoader::registerLoader(&jsonLoader);
+	Neo::LevelLoader::registerLoader(&gltfLoader);
 	Neo::LevelLoader::registerLoader(&assimpLoader);
 
-	//QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);

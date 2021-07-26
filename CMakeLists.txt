@@ -209,7 +209,7 @@ else()
 	install(TARGETS lfs jis gbk lrdb lpeglabel path miniz pinyin utf8 qtcore qtgui qtwidgets DESTINATION bin)
 
 	install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets DESTINATION bin)
-	install(DIRECTORY plugins DESTINATION bin)
+	install(DIRECTORY plugins DESTINATION bin FILES_MATCHING PATTERN "*" PATTERN "*Test*" EXCLUDE)
 endif()
 
 macro(install_kit name)

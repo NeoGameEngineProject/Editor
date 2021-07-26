@@ -22,7 +22,8 @@ public slots:
 	void selectionChangedSlot();
 	
 	void setSelectionList(const std::vector<ObjectHandle>& objects);
-	
+	void contextMenuSlot(const QPoint& pos);
+
 signals:
 	void levelChanged();
 	void objectSelectionChanged(ObjectHandle);

@@ -2,6 +2,9 @@
 #include <Log.h>
 
 #include <QTreeWidgetItem>
+#include <QAction>
+#include <QMenu>
+#include <Log.h>
 
 using namespace Neo;
 
@@ -24,8 +27,11 @@ LevelTreeWidget::LevelTreeWidget(QWidget* parent):
 	setHeaderHidden(true);
 	setSelectionBehavior(SelectionBehavior::SelectRows);
 	setSelectionMode(SelectionMode::ExtendedSelection);
+
+	setContextMenuPolicy(Qt::CustomContextMenu);
 	
 	connect(this, &QTreeWidget::itemSelectionChanged, this, &LevelTreeWidget::selectionChangedSlot);
+	connect(this, &QTreeWidget::customContextMenuRequested, this, &LevelTreeWidget::contextMenuSlot);
 }
 
 void LevelTreeWidget::addObject(ObjectHandle object, QTreeWidgetItem* parent, bool onlyChildren)
@@ -106,4 +112,34 @@ void LevelTreeWidget::setSelectionList(const std::vector<ObjectHandle>& objects)
 	blockSignals(false);
 	
 	emit objectSelectionChanged(objects[0]);
+}
+
+void LevelTreeWidget::contextMenuSlot(const QPoint& pos)
+{
+	QTreeWidgetItem* nd = itemAt(pos);
+	if(!nd)
+		return;
+
+	const std::string label = nd->text(0).toStdString();
+	auto obj = m_level->find(label.c_str());
+	if(obj.empty())
+		return;
+
+	QMenu menu(this);
+
+	auto* camera = obj->getBehavior<CameraBehavior>();
+	if(camera)
+	{
+		QAction* newAct = new QAction(tr("Set as Main Camera"), this);
+		newAct->setStatusTip(tr("Set this camera as the default camera for the level."));
+	
+		connect(newAct, &QAction::triggered, [this, label]() {
+			m_level->setMainCameraName(label.c_str());
+		});
+		
+		menu.addAction(newAct);
+	}
+
+	QPoint pt(pos);
+	menu.exec(mapToGlobal(pos));
 }

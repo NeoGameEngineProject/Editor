@@ -1,7 +1,12 @@
 build
-build-*
+build-appimage
+build-release
+build-sdk
+.idea
+
 .mxe
 assets/glsl
 SDK/*
 *.kdev4
 vcpkg
+scripts/archlinux/

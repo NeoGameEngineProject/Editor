@@ -31,6 +31,8 @@ public:
 	Neo::Level& getEditorLevel();
 	Neo::CameraBehavior& getEditorCamera();
 
+	void importScene(bool asLink = true);
+
 signals:
 	void openLevel(QString file);
 	void openProject(QString file);
@@ -49,7 +51,10 @@ public slots:
 	void openLevelSlot();
 	void saveLevelSlot();
 	void saveLevelAsSlot();
-	void appendSceneSlot();
+	
+	void importSceneSlot();
+	void importSceneAsLinkSlot();
+
 	void createProjectSlot();
 	void openProjectSlot();
 	

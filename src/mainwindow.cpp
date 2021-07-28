@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	auto level = std::make_shared<Neo::Level>();
 	ui->sceneEditor->setLevel(level);
 	ui->levelTree->setLevel(level);
-	
+
 	connect(this, &MainWindow::openLevel, [this](QString file) {
 		try
 		{
@@ -486,7 +486,7 @@ void MainWindow::saveLevelSlot()
 	emit saveLevel(QString(m_file.c_str()));
 }
 
-void MainWindow::appendSceneSlot()
+void MainWindow::importScene(bool asLink)
 {
 	auto level = ui->sceneEditor->getLevel();
 	
@@ -509,10 +509,16 @@ void MainWindow::appendSceneSlot()
 	}
 	
 	auto* link = obj->getBehavior("SceneLink");
-	if(link && !m_file.empty())
+	if(asLink && link && !m_file.empty())
 	{
+		// If we should create a link, set its path
 		QDir dir(m_file.substr(0, m_file.find_last_of('/') + 1).c_str());
 		link->setProperty<std::string>("filename", dir.relativeFilePath(file).toStdString());
+	}
+	else
+	{
+		// Remove SceneLink behavior if it exists
+		obj->removeBehavior("SceneLink");
 	}
 
 	obj->setParent(root);
@@ -521,6 +527,16 @@ void MainWindow::appendSceneSlot()
 	// To trigger re-init
 	ui->sceneEditor->setLevel(level);
 	emit levelChanged();
+}
+
+void MainWindow::importSceneSlot()
+{
+	importScene(false);
+}
+
+void MainWindow::importSceneAsLinkSlot()
+{
+	importScene(true);
 }
 
 void MainWindow::translationTool()

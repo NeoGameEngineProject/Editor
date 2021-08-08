@@ -1,6 +1,10 @@
 project(NeoEditor C CXX)
 cmake_minimum_required(VERSION 3.12.4)
 
+# Options
+option(ENABLE_SANITIZERS "Enables various compiler sanitizers" OFF)
+option(ENABLE_AUTODESK_GIZMO "Enables the Autodesk patented view gizmo" OFF)
+
 set(CMAKE_MODULE_PATH 
 	${CMAKE_CURRENT_SOURCE_DIR}/CMake
 	${CMAKE_MODULE_PATH}
@@ -48,21 +52,6 @@ set(CMAKE_MACOSX_RPATH TRUE)
 
 # add_compile_definitions(VERBOSE_BUILD)
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,.,-rpath,../lib")
-	
-	# So tests can run
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
-	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=${SANITIZER}")
-
-	if(ENABLE_SANITIZERS)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
-
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
-	endif()
-endif()
-
 set(NO_DOCS FALSE)
 set(NO_TESTGAME TRUE)
 set(NO_TESTS FALSE)
@@ -83,8 +72,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	# Clang with thinlto works fine though, so leave it enabled for that.
 	set(NO_LTO TRUE)
 endif()
-
-add_subdirectory(SDK)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -127,6 +114,23 @@ if(APPLE)
 	set(MAC_RESOURCES data/neo-icon.icns)
 endif()
 
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,.,-rpath,../lib")
+	
+	# So tests can run
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${CMAKE_INSTALL_PREFIX}/lib,-rpath,${CMAKE_INSTALL_PREFIX}/bin,-rpath,${CMAKE_BINARY_DIR}/bin,-rpath,../lib")
+	# set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=${SANITIZER}")
+
+	if(ENABLE_SANITIZERS)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER} -fsanitize=undefined -fno-omit-frame-pointer")
+	endif()
+endif()
+
+add_subdirectory(SDK)
+
 add_executable(NeoEditor MACOSX_BUNDLE WIN32 
 	${SOURCES}
 	${UI}
@@ -142,6 +146,11 @@ add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-edito
 
 add_dependencies(NeoEditor copy-editor-plugins copy-editor-data)
 add_custom_target(lqt-targets ALL DEPENDS qtcore qtwidgets qtgui lfs jis gbk lrdb lpeglabel path miniz pinyin utf8)
+
+# Enable/disable Autodesk gizmo
+if(ENABLE_AUTODESK_GIZMO)
+	add_compile_definitions(NeoEditor PUBLIC AUTODESK_GIZMO=1)
+endif()
 
 if(WIN32)
 	set(QT_WINMAIN Qt5::WinMain)

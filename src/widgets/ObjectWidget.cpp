@@ -79,20 +79,35 @@ QTreeWidgetItem* ObjectWidget::createTransform(ObjectHandle o)
 	setItemWidget(scale, 1, m_scale = new VectorWidget<Neo::Vector3>(this));
 
 	connect(m_position, &VectorWidgetBase::valueChanged, [o, this]() mutable {
+
+		emit beginUndoableChange();
+
 		o->setPosition(m_position->value());
 		o->updateMatrix();
+
+		emit endUndoableChange();
 	});
 	
 	connect(m_rotation, &VectorWidgetBase::valueChanged, [o, this]() mutable {
+
+		emit beginUndoableChange();
+
 		Quaternion rot;
 		rot.setFromAngles(m_rotation->value());
 		o->setRotation(rot);
 		o->updateMatrix();
+
+		emit endUndoableChange();
 	});
 	
 	connect(m_scale, &VectorWidgetBase::valueChanged, [o, this]() mutable {
+		
+		emit beginUndoableChange();
+
 		o->setScale(m_scale->value());
 		o->updateMatrix();
+
+		emit endUndoableChange();
 	});
 	
 	return title;
@@ -111,9 +126,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			QCheckBox* widget;
 			setItemWidget(propItem, 1, widget = new QCheckBox(this));
 			
-			connect(widget, QOverload<int>::of(&QCheckBox::stateChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QCheckBox::stateChanged), [prop, b, this](int value) mutable {
+				emit beginUndoableChange();
+		
 				prop->set(value == Qt::CheckState::Checked);
 				b->propertyChanged(prop);
+				
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -126,9 +145,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
 			
-			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b, this](int value) mutable {
+				emit beginUndoableChange();
+
 				prop->set(value);
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -141,9 +164,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setSingleStep(1);
 			widget->setRange(std::numeric_limits<unsigned int>::lowest(), std::numeric_limits<unsigned int>::max());
 			
-			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b](int value) mutable {
+			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b, this](int value) mutable {
+				emit beginUndoableChange();
+
 				prop->set(value);
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -157,9 +184,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			widget->setRange(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
 			widget->setDecimals(std::numeric_limits<float>::digits10);
 			
-			connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [prop, b](double value) mutable {
+			connect(widget, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [prop, b, this](double value) mutable {
+				emit beginUndoableChange();
+
 				prop->set(static_cast<float>(value));
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -169,9 +200,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector2>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector2>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b, this]() mutable {
+				emit beginUndoableChange();
+
 				prop->set(widget->value());
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -181,9 +216,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector3>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector3>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b, this]() mutable {
+				emit beginUndoableChange();
+
 				prop->set(widget->value());
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -193,9 +232,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			VectorWidget<Neo::Vector4>* widget;
 			setItemWidget(propItem, 1, widget = new VectorWidget<Neo::Vector4>(this));
 			
-			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b]() mutable {
+			connect(widget, &VectorWidgetBase::valueChanged, [prop, widget, b, this]() mutable {
+				emit beginUndoableChange();
+
 				prop->set(widget->value());
 				b->propertyChanged(prop);
+				
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -205,9 +248,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			ColorButton* widget;
 			setItemWidget(propItem, 1, widget = new ColorButton(this));
 			
-			connect(widget, &ColorButton::colorChanged, [prop, b](const Vector4& color) mutable {
+			connect(widget, &ColorButton::colorChanged, [prop, b, this](const Vector4& color) mutable {
+				emit beginUndoableChange();
+
 				prop->set(color);
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -227,21 +274,27 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 
 			setItemWidget(propItem, 1, frame);
 			
-			connect(widget, &QLineEdit::editingFinished, [prop, b, widget] () mutable {
+			connect(widget, &QLineEdit::editingFinished, [prop, b, widget, this] () mutable {
+				emit beginUndoableChange();
 				prop->set(widget->text().toStdString());
 				b->propertyChanged(prop);
+				emit endUndoableChange();
 			});
 
-			connect(button, &QPushButton::pressed, [prop, b, widget] () mutable {
+			connect(button, &QPushButton::pressed, [prop, b, widget, this] () mutable {
 				
 				auto value = QFileDialog::getOpenFileName(widget, tr("Open File"), widget->text(), tr("All Files (*.*)"));
 
 				if(value.isEmpty())
 					return;
 
+				emit beginUndoableChange();
+
 				widget->setText(value);
 				prop->set(value.toStdString());
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -251,9 +304,13 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			QLineEdit* widget;
 			setItemWidget(propItem, 1, widget = new QLineEdit(this));
 			
-			connect(widget, &QLineEdit::editingFinished, [prop, b, widget] () mutable {
+			connect(widget, &QLineEdit::editingFinished, [prop, b, widget, this] () mutable {
+				emit beginUndoableChange();
+
 				prop->set(widget->text().toStdString());
 				b->propertyChanged(prop);
+
+				emit endUndoableChange();
 			});
 		}
 		break;
@@ -295,10 +352,14 @@ QTreeWidgetItem* ObjectWidget::findItemWithParent(const std::string& parent, con
 
 void ObjectWidget::updateObject(ObjectHandle h)
 {
+	blockSignals(true);
+
 	m_position->setValue(h->getPosition());
 	m_rotation->setValue(h->getRotation().getEulerAngles());
 	m_scale->setValue(h->getScale());
 	m_active->setChecked(h->isActive());
+
+	blockSignals(false);
 	
 	for(auto& behavior : h->getBehaviors())
 	{

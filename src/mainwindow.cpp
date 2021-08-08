@@ -17,6 +17,7 @@
 #include <Object.h>
 #include <LevelGameState.h>
 #include <LevelLoader.h>
+#include <BinaryScene.h>
 
 #include <behaviors/SkyboxBehavior.h>
 
@@ -42,6 +43,39 @@ static Neo::ObjectHandle createObject(Neo::Level& level, const char* newName)
 	object->setParent(level.getRoot());
 	
 	return object;
+}
+
+template<typename Fn>
+void MainWindow::executeUndoableAction(Fn fn)
+{
+	auto* undoAction = new FullSceneEditCommand(*ui->sceneEditor);
+	undoAction->setUndo();
+
+	try
+	{
+		if(!fn())
+		{
+			delete undoAction;
+			return;
+		}
+	}
+	catch(...)
+	{
+		delete undoAction;
+		rethrow_exception(std::current_exception());
+	}
+
+	undoAction->setRedo();
+	m_undoStack.push(undoAction);
+}
+
+template<typename Fn>
+auto MainWindow::createUndoableAction(Fn fn)
+{
+	auto* self = this;
+	return [fn, self]() -> void {
+		self->executeUndoableAction(fn);
+	};
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -81,6 +115,9 @@ MainWindow::MainWindow(QWidget *parent) :
 			
 			this->setWindowTitle(tr("Neo Editor") + " - " + file);
 			m_file = file.toStdString();
+
+			// Clear undo stack
+			m_undoStack.clear();
 		}
 		catch(const std::exception& e)
 		{
@@ -136,11 +173,11 @@ MainWindow::MainWindow(QWidget *parent) :
 			auto action = menu->addAction(b->getName());
 			action->setObjectName(b->getName());
 			
-			connect(action, &QAction::triggered, [action, this]() mutable {
+			connect(action, &QAction::triggered, createUndoableAction([action, this]() mutable {
 				
 				auto& selection = ui->sceneEditor->getSelection();
 				if(selection.empty())
-					return;
+					return false;
 						
 				auto name = action->objectName().toStdString();
 				LOG_DEBUG("Creating behavior " << name);
@@ -159,7 +196,8 @@ MainWindow::MainWindow(QWidget *parent) :
 				
 				ui->objectWidget->setObject(selection.front());
 				emit levelChanged();
-			});
+				return true;
+			}));
 		}
 	});
 	
@@ -167,6 +205,12 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->levelTree, &Neo::LevelTreeWidget::objectSelectionListChanged, ui->sceneEditor, &Neo::EditorWidget::setSelection);
 	connect(ui->sceneEditor, &Neo::EditorWidget::objectSelectionListChanged, ui->levelTree, &Neo::LevelTreeWidget::setSelectionList);
 	connect(ui->sceneEditor, &Neo::EditorWidget::objectChanged, ui->objectWidget, &Neo::ObjectWidget::updateObject);
+
+	connect(ui->sceneEditor, &Neo::EditorWidget::beginUndoableChange, this, &MainWindow::beginUndoableChangeSlot);
+	connect(ui->sceneEditor, &Neo::EditorWidget::endUndoableChange, this, &MainWindow::endUndoableChangeSlot);
+
+	connect(ui->objectWidget, &Neo::ObjectWidget::beginUndoableChange, this, &MainWindow::beginUndoableChangeSlot);
+	connect(ui->objectWidget, &Neo::ObjectWidget::endUndoableChange, this, &MainWindow::endUndoableChangeSlot);
 
 	connect(ui->objectWidget, &Neo::ObjectWidget::requestNameChange, [this, level](Neo::ObjectHandle h, QString name) {
 		if(name.isEmpty())
@@ -186,21 +230,26 @@ MainWindow::MainWindow(QWidget *parent) :
 			return;
 		}
 		
-		h->setName(nameData);
+		executeUndoableAction([&]() {
+			h->setName(nameData);
+			return true;
+		});
+		
 		ui->levelTree->levelChangedSlot();
 		ui->objectWidget->updateObject(h);
 	});
 	
-	connect(ui->actionEmpty, &QAction::triggered, [this]() {
+	connect(ui->actionEmpty, &QAction::triggered, createUndoableAction([this]() {
 		
 		createObject(*ui->sceneEditor->getLevel(), "Object");
 		
 		// To trigger re-init
 		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
 		emit levelChanged();
-	});
+		return true;
+	}));
 	
-	connect(ui->actionCamera, &QAction::triggered, [this]() {
+	connect(ui->actionCamera, &QAction::triggered, createUndoableAction([this]() {
 		
 		auto cam = createObject(*ui->sceneEditor->getLevel(), "Camera");
 		cam->addBehavior<Neo::CameraBehavior>();
@@ -208,9 +257,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		// To trigger re-init
 		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
 		emit levelChanged();
-	});
+		return true;
+	}));
 	
-	connect(ui->actionLight, &QAction::triggered, [this]() {
+	connect(ui->actionLight, &QAction::triggered, createUndoableAction([this]() {
 		
 		auto obj = createObject(*ui->sceneEditor->getLevel(), "Light");
 		obj->addBehavior<Neo::LightBehavior>();
@@ -218,20 +268,21 @@ MainWindow::MainWindow(QWidget *parent) :
 		// To trigger re-init
 		ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
 		emit levelChanged();
-	});
+		return true;
+	}));
 	
-	connect(ui->actionSound, &QAction::triggered, [this]() {
+	connect(ui->actionSound, &QAction::triggered, createUndoableAction([this]() {
 		
 		auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("Wave File (*.wav);;OGG(*.ogg)"));
 		if(file.isEmpty())
-			return;
+			return false;
 		
 		auto level = ui->sceneEditor->getLevel();
 		auto sound = level->loadSound(file.toUtf8().data());
 		if(sound.empty())
 		{
 			QMessageBox::critical(this, tr("Load Sound"), tr("Could not load sound file!"));
-			return;
+			return false;
 		}
 		
 		auto obj = createObject(*level, "Sound");
@@ -240,9 +291,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		// To trigger re-init
 		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
-	});
+		return true;
+	}));
 	
-	connect(ui->actionDelete_Object, &QAction::triggered, [this]() {
+	connect(ui->actionDelete_Object, &QAction::triggered, createUndoableAction([this]() {
 		auto& selection = ui->sceneEditor->getSelection();
 		
 		for(auto k : selection)
@@ -261,7 +313,8 @@ MainWindow::MainWindow(QWidget *parent) :
 		// To trigger re-init
 		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
-	});
+		return true;
+	}));
 	
 	connect(ui->actionPlay, &QAction::triggered, [this]() {
 		
@@ -300,7 +353,7 @@ MainWindow::MainWindow(QWidget *parent) :
 			}
 			
 			ui->gamePlayer->playGame(game);
-						
+			
 			emit behaviorsChanged();
 			emit playGame();
 		}
@@ -329,7 +382,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		ui->sceneEditor->setNeedsInit(true);
 		emit levelChanged();
 	});
-	
+
 	// Add movement speed slider
 	auto* speedSlider = new QSlider(Qt::Orientation::Horizontal);
 	speedSlider->setMaximumWidth(128);
@@ -439,6 +492,51 @@ void MainWindow::resizeEvent(QResizeEvent* e)
 	ui->consoleDock->setMaximumHeight(height());
 }
 
+void MainWindow::beginUndoableChangeSlot()
+{
+	// Delete undo command if it is set, which means that a previous begin has had no end
+	// following it, thus it is incomplete.
+	delete m_currentUndoCommand;
+		
+	auto* fse = new FullSceneEditCommand(*ui->sceneEditor);
+	fse->setUndo();
+
+	m_currentUndoCommand = fse;
+	LOG_DEBUG("Undo change");
+}
+
+void MainWindow::endUndoableChangeSlot()
+{
+	// This should never happen, only if end was called without begin.
+	if(!m_currentUndoCommand)
+		return;
+
+	auto* fse = static_cast<FullSceneEditCommand*>(m_currentUndoCommand);
+	fse->setRedo();
+	m_undoStack.push(fse);
+
+	m_currentUndoCommand = nullptr;
+	LOG_DEBUG("Redo change");
+}
+
+void MainWindow::undoSlot()
+{
+	ui->sceneEditor->clearSelection();
+	ui->objectWidget->clear();
+
+	m_undoStack.undo();
+	emit levelChanged();
+}
+
+void MainWindow::redoSlot()
+{
+	ui->sceneEditor->clearSelection();
+	ui->objectWidget->clear();
+	
+	m_undoStack.redo();
+	emit levelChanged();
+}
+
 void MainWindow::openLevelSlot()
 {
 	auto file = QFileDialog::getOpenFileName(this, tr("Open Level"), ".", tr("All Supported (" SUPPORTED_SCENE_FORMATS ");;Neo Level (*.nlv);;Collada DAE (*.dae)"));
@@ -502,27 +600,30 @@ void MainWindow::importScene(bool asLink)
 	auto obj = level->addObject(name.c_str());
 	auto root = level->getRoot();
 	
-	if(!Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data(), name.c_str()))
-	{
-		QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
-		return;
-	}
-	
-	auto* link = obj->getBehavior("SceneLink");
-	if(asLink && link && !m_file.empty())
-	{
-		// If we should create a link, set its path
-		QDir dir(m_file.substr(0, m_file.find_last_of('/') + 1).c_str());
-		link->setProperty<std::string>("filename", dir.relativeFilePath(file).toStdString());
-	}
-	else
-	{
-		// Remove SceneLink behavior if it exists
-		obj->removeBehavior("SceneLink");
-	}
+	executeUndoableAction([&]() {
+		if(!Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data(), name.c_str()))
+		{
+			QMessageBox::critical(this, tr("Error"), tr("Could not load scene file!"));
+			return false;
+		}
+		
+		auto* link = obj->getBehavior("SceneLink");
+		if(asLink && link && !m_file.empty())
+		{
+			// If we should create a link, set its path
+			QDir dir(m_file.substr(0, m_file.find_last_of('/') + 1).c_str());
+			link->setProperty<std::string>("filename", dir.relativeFilePath(file).toStdString());
+		}
+		else
+		{
+			// Remove SceneLink behavior if it exists
+			obj->removeBehavior("SceneLink");
+		}
 
-	obj->setParent(root);
-	root->addChild(obj);
+		obj->setParent(root);
+		root->addChild(obj);
+		return true;
+	});
 
 	// To trigger re-init
 	ui->sceneEditor->setLevel(level);

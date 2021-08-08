@@ -26,12 +26,13 @@ signals:
 	void objectChanged(ObjectHandle);
 	void requestNameChange(ObjectHandle, QString);
 	
+	void beginUndoableChange();
+	void endUndoableChange();
+
 private:
 	QTreeWidgetItem* createTransform(ObjectHandle o);
 	QTreeWidgetItem* createBehavior(Behavior* b);
 	QTreeWidgetItem* createCustomBehavior(Behavior* b, QTreeWidgetItem* parent);
-
-	
 	QTreeWidgetItem* findItemWithParent(const std::string& parent, const std::string& name);
 	
 	VectorWidget<Vector3>* m_position, *m_rotation, *m_scale;

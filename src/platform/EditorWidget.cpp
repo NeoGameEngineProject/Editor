@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QDesktopWidget>
+#include <QOpenGLContext>
 
 using namespace Neo;
 
@@ -61,6 +62,8 @@ void EditorWidget::initializeGL()
 	render->createTexture(m_objectTextures[0]);
 	render->createTexture(m_objectTextures[1]);
 	render->createTexture(m_objectTextures[2]);
+
+	glDisable(GL_BLEND);
 }
 
 void EditorWidget::resizeGL(int w, int h)
@@ -239,6 +242,19 @@ void EditorWidget::paintGL()
 	ImGui::End();
 	
 	ImGuizmo::BeginFrame();
+
+	// Defined in CMake
+	#ifdef AUTODESK_GIZMO
+	{
+		auto* cam = getCamera().getParent();
+		Matrix4x4 view = cam->getTransform().getInverse();
+
+		ImGuizmo::ViewManipulate(view.entries, 8.0f, ImVec2(width() - 128, 0), ImVec2(128, 128), 0);
+		cam->getTransform() = view.getInverse();
+		cam->updateFromMatrix();
+	}
+	#endif
+
 	if(!m_selection.empty())
 	{
 		ImGuizmo::Enable(true);
@@ -270,6 +286,11 @@ void EditorWidget::paintGL()
 						NULL, 
 						NULL);
 			
+			if(delta != Matrix4x4())
+			{
+				m_gizmoMoved = true;
+			}
+
 			Matrix4x4 translation;
 			translation.loadIdentity();
 			translation.setTranslation(selection.getTranslationPart());
@@ -339,12 +360,33 @@ void EditorWidget::paintGL()
 				obj->updateFromMatrix();
 				obj->makeSubtreeDirty();
 				emit objectChanged(obj);
+
+				m_gizmoMoved = true;
 			}
 		}
+
+		// If the usage state changed
+		// Only emit undo events if it really edited something
+		// i.e. the gizmo was moved and if the selection flag changed.
+		if(m_gizmoIsEditing && !ImGuizmo::IsUsing() && m_gizmoMoved)
+		{
+			m_gizmoMoved = false;
+			emit endUndoableChange();
+		}
+		else if(!m_gizmoIsEditing && ImGuizmo::IsUsing())
+		{
+			m_gizmoMoved = false;
+			emit beginUndoableChange();
+		}
+
+		m_gizmoIsEditing = ImGuizmo::IsUsing();
 	}
 	else
 	{
 		ImGuizmo::Enable(false);
+		
+		m_gizmoMoved = false;
+		m_gizmoIsEditing = false;
 	}
 
 	LevelWidget::paintGL();
@@ -353,10 +395,12 @@ void EditorWidget::paintGL()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	// Clear alpha buffer so we don't blend with the desktop wallpaper
+	#if 0
 	glColorMask(false, false, false, true);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColorMask(true, true, true, true);
+	#endif
 
 	glFinish();
 }

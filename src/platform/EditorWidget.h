@@ -22,7 +22,12 @@ public:
 
 	void setMode(EDITOR_MODE mode) { m_mode = mode; }
 	const std::vector<ObjectHandle>& getSelection() const { return m_selection; }
-	
+	void clearSelection()
+	{
+		m_selection.clear();
+		emit objectSelectionChanged(ObjectHandle());
+	}
+
 	void makePathsRelative(const std::string& dir);
 
 protected:
@@ -38,6 +43,9 @@ signals:
 	void objectSelectionListChanged(const std::vector<ObjectHandle>&);
 	void objectChanged(ObjectHandle);
 	
+	void beginUndoableChange();
+	void endUndoableChange();
+
 private:
 	void updateDPI();
 	void updateImGuiInput();
@@ -46,6 +54,9 @@ private:
 	float m_scaledWidth = 0, m_scaledHeight = 0, m_dpiScale = 1;
 	std::vector<ObjectHandle> m_selection;
 	EDITOR_MODE m_mode = EDITOR_TRANSLATE;
+
+	bool m_gizmoIsEditing = false;
+	bool m_gizmoMoved = false;
 
 	// Contains the textures belonging to the camera/light/etc. objects
 	Texture* m_objectTextures[3];

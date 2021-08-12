@@ -4,7 +4,7 @@
 #include <QTreeWidgetItem>
 #include <QAction>
 #include <QMenu>
-#include <Log.h>
+#include <QDropEvent>
 
 using namespace Neo;
 
@@ -15,9 +15,8 @@ public:
 	ObjectItem(QTreeWidgetItem* parent, const QStringList& strings, ObjectHandle object):
 		QTreeWidgetItem(parent, strings),
 		m_object(object) {}
-		
+
 	ObjectHandle getObject() const { return m_object; }
-	
 };
 
 LevelTreeWidget::LevelTreeWidget(QWidget* parent):
@@ -37,6 +36,7 @@ LevelTreeWidget::LevelTreeWidget(QWidget* parent):
 void LevelTreeWidget::addObject(ObjectHandle object, QTreeWidgetItem* parent, bool onlyChildren)
 {
 	QTreeWidgetItem* item = (onlyChildren ? parent : new ObjectItem(parent, QStringList(object->getName().str()), object));
+
 	for(auto& child : object->getChildren())
 	{
 		addObject(child, item, false);
@@ -142,4 +142,42 @@ void LevelTreeWidget::contextMenuSlot(const QPoint& pos)
 
 	QPoint pt(pos);
 	menu.exec(mapToGlobal(pos));
+}
+
+void LevelTreeWidget::dropEvent(QDropEvent* event)
+{
+	auto items = QTreeWidget::selectedItems();
+
+	// First, execute drop
+	QTreeWidget::dropEvent(event);
+
+	// Update scene to reflect new parent-child relationships
+	LOG_DEBUG("Dropping items");
+	for(auto* item : items)
+	{
+		LOG_DEBUG("Dropping: " << item->text(0).toStdString());
+		auto object = static_cast<ObjectItem*>(item)->getObject();
+		
+		auto* newParentItem = item->parent();
+		if(newParentItem == nullptr)
+		{
+			object->setParent(m_level->getRoot());
+			object->updateMatrix();
+			continue;
+		}
+
+		auto parentObject = m_level->find(newParentItem->text(0).toUtf8().data());
+		if(parentObject.empty())
+			LOG_WARNING("Parent not found!");
+
+		object->setParent(parentObject);
+		object->updateMatrix();
+	}
+	
+	//LOG_INFO(QTreeWidget:)
+	//auto* source = dynamic_cast<ObjectItem*>(event->source());
+	//if(!source)
+	//	return;
+
+	//LOG_DEBUG("Dropped " << source->getObject()->getName());
 }

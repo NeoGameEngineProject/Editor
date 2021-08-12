@@ -39,7 +39,6 @@ static Neo::ObjectHandle createObject(Neo::Level& level, const char* newName)
 	auto name = level.getUniqueName(newName);
 	object->setName(name.c_str());
 
-	level.getRoot()->addChild(object);
 	object->setParent(level.getRoot());
 	
 	return object;
@@ -621,7 +620,6 @@ void MainWindow::importScene(bool asLink)
 		}
 
 		obj->setParent(root);
-		root->addChild(obj);
 		return true;
 	});
 

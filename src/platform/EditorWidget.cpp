@@ -248,10 +248,15 @@ void EditorWidget::paintGL()
 	{
 		auto* cam = getCamera().getParent();
 		Matrix4x4 view = cam->getTransform().getInverse();
+		auto originalRot = view.getRotation();
 
 		ImGuizmo::ViewManipulate(view.entries, 8.0f, ImVec2(width() - 128, 0), ImVec2(128, 128), 0);
-		cam->getTransform() = view.getInverse();
-		cam->updateFromMatrix();
+
+		if((view.getRotation().getEulerAngles() - originalRot.getEulerAngles()).getLength() > 0.01)
+		{
+			cam->getTransform() = view.getInverse();
+			cam->updateFromMatrix();
+		}
 	}
 	#endif
 
@@ -336,7 +341,7 @@ void EditorWidget::paintGL()
 				#endif
 
 				object->makeSubtreeDirty();
-				object->updateMatrix();
+				obj->updateChildMatrices();
 			}
 		}
 		else
@@ -354,11 +359,14 @@ void EditorWidget::paintGL()
 
 			if(delta != Matrix4x4())
 			{
-				if(!obj->getParent().empty())
-					obj->getTransform() = obj->getParent()->getTransform().getInverse() * obj->getTransform();
+			//	if(!obj->getParent().empty())
+			//		obj->getTransform() = obj->getParent()->getTransform().getInverse() * obj->getTransform();
 
 				obj->updateFromMatrix();
+
 				obj->makeSubtreeDirty();
+				obj->updateChildMatrices();
+
 				emit objectChanged(obj);
 
 				m_gizmoMoved = true;

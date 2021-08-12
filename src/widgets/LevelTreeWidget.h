@@ -28,7 +28,10 @@ signals:
 	void levelChanged();
 	void objectSelectionChanged(ObjectHandle);
 	void objectSelectionListChanged(const std::vector<ObjectHandle>&);
-	
+
+protected:
+	void dropEvent(QDropEvent* event) override;
+
 private:
 	void addObject(ObjectHandle object, QTreeWidgetItem* parent, bool onlyChildren = false);
 	

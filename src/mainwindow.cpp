@@ -416,6 +416,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		LOG_ERROR("Could not load plugins: " << e.what());
 	}
 
+	// Select default input method, may be overwritten
+	// by readSettings if the user changed it
+	selectInputMethod(0);
+
 	// Finally: Load settings. Includes dock layout etc., even for plugins.
 	readSettings();
 
@@ -664,3 +668,20 @@ void MainWindow::managePluginsSlot()
 	PluginDialog dlg;
 	dlg.exec();
 }
+
+void MainWindow::selectInputMethod(size_t id)
+{
+	if(id >= m_inputMethods.size())
+	{
+		ui->sceneEditor->setInputMethod(nullptr);
+		return;
+	}
+
+	ui->sceneEditor->setInputMethod(m_inputMethods[id]);
+}
+
+Neo::EditorWidget* MainWindow::getEditor()
+{
+	return ui->sceneEditor;
+}
+

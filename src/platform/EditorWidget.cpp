@@ -411,6 +411,10 @@ void EditorWidget::paintGL()
 	#endif
 
 	glFinish();
+
+	// FIXME Hack!
+	// Reset delta of scroll value
+	input.getMouse().setScrollValue(0);
 }
 
 void EditorWidget::setSelection(const std::vector<ObjectHandle>& selection)

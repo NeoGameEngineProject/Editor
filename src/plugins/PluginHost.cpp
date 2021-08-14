@@ -1,6 +1,8 @@
 #include "PluginHost.h"
 #include "mainwindow.h"
 
+#include <platform/EditorWidget.h>
+
 #include <QAction>
 #include <QMenuBar>
 #include <QToolBar>
@@ -64,19 +66,54 @@ static int GetEditorLevel(lua_State* L)
 static int GetEditorCamera(lua_State* L)
 {
 	auto* win = PluginHost::get().getWindow();
-	pushBehavior(L, &win->getEditorCamera());
+	pushCameraBehavior(L, &win->getEditorCamera());
+	return 1;
+}
+
+static int GetEditorSelection(lua_State* L)
+{
+	auto* win = PluginHost::get().getWindow();
+	auto* editor = win->getEditor();
+
+	auto& selection = editor->getSelection();
+	lua_newtable(L);
+
+	for(int i = 0; i < selection.size(); i++)
+	{
+		lua_pushinteger(L, i+1);
+
+		// FIXME Should use handles instead as pointers may become
+		// invalid!
+		// FIXME: Constness!!!!!
+		pushObject(L, (Neo::Object*) selection[i].get());
+		lua_rawset(L, -3);
+	}
+	
+	return 1;
+}
+
+static int GetEditorMovementSpeed(lua_State* L)
+{
+	auto* win = PluginHost::get().getWindow();
+	auto* editor = win->getEditor();
+
+	lua_pushnumber(L, editor->getMovementSpeed());
+	
 	return 1;
 }
 }
 
 void PluginHost::load(const std::string& file)
 {
-	m_plugins.emplace_back();
-	auto& P = m_plugins.back();
-	auto* L = P.getState();
+	auto P = std::make_shared<LuaScript>();
+	auto* L = P->getState();
+
+	m_plugins.push_back(P);
 
 	lua_register(L, "GetEditorLevel", LuaBindings::GetEditorLevel);
 	lua_register(L, "GetEditorCamera", LuaBindings::GetEditorCamera);
+	lua_register(L, "GetEditorSelection", LuaBindings::GetEditorSelection);
+	lua_register(L, "GetEditorMovementSpeed", LuaBindings::GetEditorMovementSpeed);
 
 	lua_register(L, "AddMenuAction", [](lua_State* L) -> int
 	{
@@ -206,12 +243,24 @@ void PluginHost::load(const std::string& file)
 		return 0;
 	});
 
+	lua_register(L, "RegisterInputMethod", [](lua_State* L) -> int
+	{
+		auto& h = PluginHost::get();
+		auto plugin = h.findPlugin(L);
+		
+		if(plugin)
+			h.getWindow()->registerInputMethod(plugin);
+		else
+			LOG_ERROR("The currently running plugin does not seem to be registered! This should never happen!");
 
-	P.doString("package.path = package.path .. ';" + m_luaModulePath + "'");
-	P.doString("package.cpath = package.cpath .. ';" + m_modulePath + "'");
-	P.doFile(file.c_str());
+		return 0;
+	});
 
-	LOG_DEBUG("Loaded plugin: " << P.getGlobalString("PluginName") << " by " << P.getGlobalString("PluginAuthor"));
+	P->doString("package.path = package.path .. ';" + m_luaModulePath + "'");
+	P->doString("package.cpath = package.cpath .. ';" + m_modulePath + "'");
+	P->doFile(file.c_str());
+
+	LOG_DEBUG("Loaded plugin: " << P->getGlobalString("PluginName") << " by " << P->getGlobalString("PluginAuthor"));
 }
 
 #ifdef __APPLE__ // No std::filesystem before Catalina, yay...
@@ -250,4 +299,16 @@ void PluginHost::loadDirectory(const std::string& dir)
 	
 	closedir(dirptr);
 #endif
+}
+
+std::shared_ptr<Neo::LuaScript> PluginHost::findPlugin(lua_State* L)
+{
+	auto iter = std::find_if(m_plugins.begin(), m_plugins.end(), [L](const std::shared_ptr<Neo::LuaScript>& script) {
+		return script->getState() == L;
+	});
+
+	if(iter == m_plugins.end())
+		return nullptr;
+
+	return *iter;
 }

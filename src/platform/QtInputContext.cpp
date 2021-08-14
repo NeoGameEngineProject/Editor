@@ -23,8 +23,7 @@ void QtInputContext::handleInput()
 	// If the mouse is locked we need to ensure that the direction is reset when no movement happened.
 	if(isMouseRelative())
 		mouse.setDirection(Vector2(0,0));
-
-	if(!isMouseRelative()) // Only calculate direction from position when it is needed
+	else // Only calculate direction from position when it is needed
 		mouse.flushDirection();
 }
 

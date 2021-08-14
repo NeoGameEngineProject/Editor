@@ -24,12 +24,13 @@ public:
 	MainWindow* getWindow() { return m_window; }
 	void setWindow(MainWindow* window) { m_window = window; }
 
-	std::vector<Neo::LuaScript>& getPlugins() { return m_plugins; }
+	std::vector<std::shared_ptr<Neo::LuaScript>>& getPlugins() { return m_plugins; }
+	std::shared_ptr<Neo::LuaScript> findPlugin(lua_State* L);
 
 	static PluginHost& get();
 
 private:
-	std::vector<Neo::LuaScript> m_plugins;
+	std::vector<std::shared_ptr<Neo::LuaScript>> m_plugins;
 	std::string m_modulePath, m_luaModulePath;
 	MainWindow* m_window = nullptr;
 };

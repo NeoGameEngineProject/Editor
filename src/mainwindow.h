@@ -21,6 +21,11 @@ namespace Ui
 class MainWindow;
 }
 
+namespace Neo
+{
+class EditorWidget;
+}
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -33,6 +38,7 @@ public:
 	
 	Neo::Level& getEditorLevel();
 	Neo::CameraBehavior& getEditorCamera();
+	Neo::EditorWidget* getEditor();
 
 	void importScene(bool asLink = true);
 
@@ -41,6 +47,11 @@ public:
 
 	template<typename Fn>
 	auto createUndoableAction(Fn fn);
+
+	// FIXME Ownership semantic! Who owns the pointer? Currently the caller!
+	void registerInputMethod(std::shared_ptr<Neo::LuaScript> script) { m_inputMethods.push_back(script); }
+	void selectInputMethod(size_t id);
+	std::vector<std::shared_ptr<Neo::LuaScript>>& getInputMethods() { return m_inputMethods; }
 
 signals:
 	void openLevel(QString file);
@@ -99,6 +110,9 @@ private:
 	
 	std::string m_file; // The file that is currently being edited
 	bool m_readOnly = false; // If the file is loaded as read-only (e.g. for DAE files)
+
+	// Contains all registered input method scripts
+	std::vector<std::shared_ptr<Neo::LuaScript>> m_inputMethods;
 };
 
 #endif // MAINWINDOW_H

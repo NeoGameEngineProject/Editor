@@ -8,6 +8,7 @@
 #include <Object.h>
 #include <behaviors/CameraBehavior.h>
 #include <Log.h>
+#include <LuaScript.h>
 
 namespace Neo 
 {
@@ -37,6 +38,9 @@ public:
 
 	void setMovementSpeed(float f) { m_movementSpeed = f; }
 	float getMovementSpeed() const { return m_movementSpeed; }
+
+	std::shared_ptr<Neo::LuaScript> getInputMethod() { return m_inputMethod; }
+	void setInputMethod(std::shared_ptr<Neo::LuaScript> s) { m_inputMethod = s; }
 	
 protected:
 	virtual void initializeGL();
@@ -53,6 +57,9 @@ private:
 	float m_movementSpeed = 1.0f; // Movement speed of the camera
 
 	bool m_levelNeedsInit = false;
+
+	// The current input script
+	std::shared_ptr<Neo::LuaScript> m_inputMethod = nullptr;
 };
 
 }

@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QWheelEvent>
 
 using namespace Neo;
 
@@ -40,22 +41,34 @@ void LevelWidget::paintGL()
 
 	if(hasFocus())
 	{
-		if(input.isKeyDown(Neo::KEY_W))
-			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, -1), true);
-		else if(input.isKeyDown(Neo::KEY_S))
-			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, 1), true);
-		
-		if(input.isKeyDown(Neo::KEY_A))
-			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(-1, 0, 0), true);
-		else if(input.isKeyDown(Neo::KEY_D))
-			m_cameraObject.translate(m_movementSpeed * Neo::Vector3(1, 0, 0), true);
-		
-		if(input.getMouse().isKeyDown(Neo::MOUSE_BUTTON_RIGHT))
+		// If an input script is registered, use that
+		if(m_inputMethod)
 		{
-			auto rotation = m_cameraObject.getRotation().getEulerAngles();
-			rotation.z -= input.getMouse().getDirection().x * 0.1;
-			rotation.x -= input.getMouse().getDirection().y * 0.1;
-			m_cameraObject.setRotation(Neo::Quaternion(rotation.x, rotation.y, rotation.z));
+			if(m_inputMethod->startCallFunction("UpdateInput"))
+			{
+				pushPlatform(m_inputMethod->getState(), &m_platform);
+				m_inputMethod->endCallFunction(1);
+			}
+		}
+		else // Otherwise fall back to FPS default
+		{
+			if(input.isKeyDown(Neo::KEY_W))
+				m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, -1), true);
+			else if(input.isKeyDown(Neo::KEY_S))
+				m_cameraObject.translate(m_movementSpeed * Neo::Vector3(0, 0, 1), true);
+			
+			if(input.isKeyDown(Neo::KEY_A))
+				m_cameraObject.translate(m_movementSpeed * Neo::Vector3(-1, 0, 0), true);
+			else if(input.isKeyDown(Neo::KEY_D))
+				m_cameraObject.translate(m_movementSpeed * Neo::Vector3(1, 0, 0), true);
+			
+			if(input.getMouse().isKeyDown(Neo::MOUSE_BUTTON_RIGHT))
+			{
+				auto rotation = m_cameraObject.getRotation().getEulerAngles();
+				rotation.z -= input.getMouse().getDirection().x * 0.1;
+				rotation.x -= input.getMouse().getDirection().y * 0.1;
+				m_cameraObject.setRotation(Neo::Quaternion(rotation.x, rotation.y, rotation.z));
+			}
 		}
 	}
 	input.getMouse().setDirection(Vector2());
@@ -359,7 +372,15 @@ bool LevelWidget::event(QEvent* e)
 			}
 		}
 		break;
-			
+		
+		case QEvent::Wheel:
+		{
+			QWheelEvent* mouse = static_cast<QWheelEvent*>(e);
+			float scroll = mouse->angleDelta().y();
+			input.getMouse().setScrollValue(scroll);
+		}
+		break;
+
 		default:
 			return OpenGLWidget::event(e);
 	}

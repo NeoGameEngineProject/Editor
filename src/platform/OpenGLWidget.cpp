@@ -1,6 +1,6 @@
 #include "OpenGLWidget.h"
 
-#include <iostream>
+#include <Log.h>
 #include <QOpenGLContext>
 #include <QApplication>
 #include <QDir>
@@ -19,9 +19,9 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
 {
 	connect(&m_redrawTimer, SIGNAL(timeout()), this, SLOT(update()));
 
-	m_redrawTimer.setTimerType(Qt::TimerType::PreciseTimer);
+	m_redrawTimer.setTimerType(Qt::TimerType::CoarseTimer);
 	m_redrawTimer.setSingleShot(true);
-	m_redrawTimer.start(1000.0f/60.0f);
+	m_redrawTimer.start(1000.0f/m_fps);
 }
 
 void OpenGLWidget::initializeGL()
@@ -73,6 +73,8 @@ float OpenGLWidget::endFrame()
 	const auto dt = t - m_frameBeginTime;
 	m_dt = static_cast<float>(dt) / 1000.0f;
 
-	m_redrawTimer.start(std::max(0, static_cast<int>(1000/60 - m_dt)));
+	const auto sleepTime = std::max(5, static_cast<int>(std::floor((1000.0f / m_fps) - m_dt)));
+	m_redrawTimer.start(sleepTime);
+	
 	return m_dt;
 }

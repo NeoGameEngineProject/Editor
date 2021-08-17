@@ -60,12 +60,12 @@ int main(int argc, char *argv[])
 #endif
 
 	QSurfaceFormat::setDefaultFormat(format);
-
-	MainWindow w;
-	w.show();
 	
 	try
 	{	
+		MainWindow w;
+		w.show();
+
 		return a.exec();
 	}
 	catch(std::exception& e)

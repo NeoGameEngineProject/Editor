@@ -410,7 +410,7 @@ void EditorWidget::paintGL()
 	glColorMask(true, true, true, true);
 	#endif
 
-	glFinish();
+	//glFinish();
 
 	// FIXME Hack!
 	// Reset delta of scroll value

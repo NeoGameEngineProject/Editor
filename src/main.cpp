@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	Neo::LevelLoader::registerLoader(&gltfLoader);
 	Neo::LevelLoader::registerLoader(&assimpLoader);
 
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	//QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication a(argc, argv);

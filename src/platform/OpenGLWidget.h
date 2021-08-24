@@ -38,7 +38,7 @@ protected:
 
 	long long m_frameBeginTime = 0;
 	float m_dt = 0.0f;
-	float m_fps = 30.0f;
+	float m_fps = 60.0f;
 };
 
 }

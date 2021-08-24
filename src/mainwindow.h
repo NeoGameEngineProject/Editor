@@ -26,6 +26,8 @@ namespace Neo
 class EditorWidget;
 }
 
+class QSettings;
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -52,6 +54,19 @@ public:
 	void registerInputMethod(std::shared_ptr<Neo::LuaScript> script) { m_inputMethods.push_back(script); }
 	void selectInputMethod(size_t id);
 	std::vector<std::shared_ptr<Neo::LuaScript>>& getInputMethods() { return m_inputMethods; }
+
+	struct Configuration
+	{
+		std::string language = "en";
+		std::string inputMethod = "";
+		std::string theme = "Native";
+		std::vector<std::string> pluginDirectories;
+
+		void write(QSettings& settings);
+		void read(QSettings& settings);
+	};
+
+	void applyConfiguration();
 
 signals:
 	void openLevel(QString file);
@@ -93,6 +108,7 @@ public slots:
 
 	void publishGameSlot();
 	void managePluginsSlot();
+	void openPreferencesSlot();
 
 	void closeEvent(QCloseEvent *event);
 	void resetView();
@@ -113,6 +129,9 @@ private:
 
 	// Contains all registered input method scripts
 	std::vector<std::shared_ptr<Neo::LuaScript>> m_inputMethods;
+
+	// Current configuration
+	Configuration m_config;
 };
 
 #endif // MAINWINDOW_H

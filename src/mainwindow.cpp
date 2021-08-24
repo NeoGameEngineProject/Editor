@@ -7,6 +7,7 @@
 
 #include <dialogs/PublishDialog.h>
 #include <dialogs/PluginDialog.h>
+#include <dialogs/PreferencesDialog.h>
 
 #include <Level.h>
 #include <QFileDialog>
@@ -450,6 +451,9 @@ void MainWindow::readSettings()
 	LOG_INFO("Loading config from: " << settings.fileName().toStdString());
 	restoreGeometry(settings.value("geometry").toByteArray());
 	restoreState(settings.value("windowState").toByteArray());
+
+	m_config.read(settings);
+	applyConfiguration();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -457,6 +461,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	QSettings settings("NeoEngine", "NeoEditor");
 	settings.setValue("geometry", saveGeometry());
 	settings.setValue("windowState", saveState());
+
+	m_config.write(settings);
+
 	QMainWindow::closeEvent(event);
 }
 
@@ -669,6 +676,19 @@ void MainWindow::managePluginsSlot()
 	dlg.exec();
 }
 
+void MainWindow::openPreferencesSlot()
+{
+	Configuration config = m_config;
+	PreferencesDialog dlg(this, config);
+
+	connect(&dlg, &PreferencesDialog::accepted, [this, &config]() {
+		m_config = config;
+		applyConfiguration();
+	});
+
+	dlg.exec();
+}
+
 void MainWindow::selectInputMethod(size_t id)
 {
 	if(id >= m_inputMethods.size())
@@ -685,3 +705,66 @@ Neo::EditorWidget* MainWindow::getEditor()
 	return ui->sceneEditor;
 }
 
+#include <QTextStream>
+static void applyTheme(const std::string& name, QWidget* w)
+{
+	if (name == "Native")
+	{
+		w->setStyleSheet("");
+		QIcon::setThemeName("breeze");
+		return;
+	}
+
+	// TODO Support system themes maybe?
+	QString internalFile;
+	if (name.find("dark") != -1)
+	{
+		internalFile = "dark";
+		QIcon::setThemeName("breeze-dark");
+	}
+	else
+	{
+		internalFile = "light";
+		QIcon::setThemeName("breeze");
+	}
+
+	QFile file(":/" + internalFile + "/stylesheet.qss");
+	file.open(QFile::ReadOnly | QFile::Text);
+	QTextStream stream(&file);
+	w->setStyleSheet(stream.readAll());
+}
+
+void MainWindow::applyConfiguration()
+{
+	applyTheme(m_config.theme, this);
+}
+
+void MainWindow::Configuration::write(QSettings& settings)
+{
+	settings.setValue("language", language.c_str());
+	settings.setValue("inputMethod", inputMethod.c_str());
+	settings.setValue("theme", theme.c_str());
+
+	settings.beginWriteArray("pluginDirectories", pluginDirectories.size());
+	for(size_t i = 0; i < pluginDirectories.size(); i++)
+	{
+		settings.setArrayIndex(i);
+		settings.setValue("path", pluginDirectories[i].c_str());
+	}
+	settings.endArray();
+}
+
+void MainWindow::Configuration::read(QSettings& settings)
+{
+	language = settings.value("language").toString().toStdString();
+	inputMethod = settings.value("inputMethod").toString().toStdString();
+	theme = settings.value("theme").toString().toStdString();
+
+	settings.beginReadArray("pluginDirectories");
+	for(size_t i = 0; i < pluginDirectories.size(); i++)
+	{
+		settings.setArrayIndex(i);
+		pluginDirectories.push_back(settings.value("path").toString().toStdString());
+	}
+	settings.endArray();
+}

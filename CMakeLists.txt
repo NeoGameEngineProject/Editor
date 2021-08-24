@@ -139,8 +139,20 @@ add_executable(NeoEditor MACOSX_BUNDLE WIN32
 	${IMGUI_SOURCES}
 	${LQT_SRC} 
 	${LQT_HPP}
-	BreezeStyleSheets/breeze.qrc src/neo_icon.rc
+	BreezeStyleSheets/dist/breeze_themes.qrc src/neo_icon.rc
 	${MAC_RESOURCES})
+
+# TODO: Move to its own target!
+find_package(Python3 COMPONENTS Interpreter)
+add_custom_target(
+	run_python_breeze ALL
+	COMMAND ${Python3_EXECUTABLE} configure.py --extensions=all
+		--styles=all --resource breeze_themes.qrc
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BreezeStyleSheets
+	BYPRODUCTS "${CMAKE_CURRENT_SOURCE_DIR}/BreezeStyleSheets/dist/breeze_themes.qrc"
+	COMMENT "Generating themes")
+
+add_dependencies(NeoEditor run_python_breeze)
 
 ## Add lqt as a dependency so plugins can be loaded
 add_dependencies(NeoEditor qtcore qtwidgets qtgui copy-editor-plugins copy-editor-data)

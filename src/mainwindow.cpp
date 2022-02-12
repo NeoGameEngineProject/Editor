@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
+#include <QApplication>
 
 #include <Log.h>
 #include <Object.h>
@@ -94,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	auto level = std::make_shared<Neo::Level>();
 	ui->sceneEditor->setLevel(level);
 	ui->levelTree->setLevel(level);
+	ui->objectWidget->setLevel(level);
 
 	connect(this, &MainWindow::openLevel, [this](QString file) {
 		try
@@ -106,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent) :
 			
 			ui->sceneEditor->setLevel(level);
 			ui->levelTree->setLevel(level);
+			ui->objectWidget->setLevel(level);
 
 			if(!Neo::LevelLoader::load(*ui->sceneEditor->getLevel(), file.toUtf8().data()))
 			{
@@ -191,10 +194,14 @@ MainWindow::MainWindow(QWidget *parent) :
 					}
 						
 					Neo::Behavior* behavior = obj->addBehavior(Neo::Behavior::create(name.c_str()));
-					ui->sceneEditor->begin(behavior);
 				}
 				
 				ui->objectWidget->setObject(selection.front());
+
+
+				// To trigger re-init
+				ui->sceneEditor->setLevel(ui->sceneEditor->getLevel());
+				
 				emit levelChanged();
 				return true;
 			}));
@@ -710,7 +717,7 @@ static void applyTheme(const std::string& name, QWidget* w)
 {
 	if (name == "Native")
 	{
-		w->setStyleSheet("");
+		qApp->setStyleSheet("");
 		QIcon::setThemeName("breeze");
 		return;
 	}
@@ -731,7 +738,7 @@ static void applyTheme(const std::string& name, QWidget* w)
 	QFile file(":/" + internalFile + "/stylesheet.qss");
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream stream(&file);
-	w->setStyleSheet(stream.readAll());
+	qApp->setStyleSheet(stream.readAll());
 }
 
 void MainWindow::applyConfiguration()

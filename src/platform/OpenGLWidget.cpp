@@ -41,13 +41,18 @@ void OpenGLWidget::initializeGL()
 #endif
 
 		m_render = std::make_unique<PlatformRenderer>();
-		m_render->initialize(width(), height(), (void*) context->defaultFramebufferObject(), nullptr, (void*) winId(), nativeContext);
+		m_render->initialize(width(), height(), (void*) static_cast<uintptr_t>(context->defaultFramebufferObject()), nullptr, (void*) winId(), nativeContext);
 
 //		m_render->initialize(width(), height(), nullptr, nullptr, nullptr);
 }
 
 void OpenGLWidget::resizeGL(int w, int h)
 {
+	auto context = QOpenGLContext::currentContext();
+
+	// Update default FBO as it most certainly will have changed
+	// due to the resize!
+	m_render->setBackbuffer((void*) static_cast<uintptr_t>(context->defaultFramebufferObject()));
 	m_render->setViewport(0, 0, w, h);
 }
 

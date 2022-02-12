@@ -56,9 +56,13 @@ int main(int argc, char *argv[])
 	format.setSwapInterval(0);
 	// format.setSamples(4);
 
-#ifdef NDEBUG
-	// format.setOption(QSurfaceFormat::DebugContext);
-#endif
+//#ifdef NDEBUG
+	if(Neo::Renderer::GraphicsDebugging())
+	{
+		LOG_INFO("Enabling OpenGl debug context");
+		format.setOption(QSurfaceFormat::DebugContext);
+	}
+//#endif
 
 	QSurfaceFormat::setDefaultFormat(format);
 	

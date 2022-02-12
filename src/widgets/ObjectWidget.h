@@ -9,6 +9,8 @@
 namespace Neo 
 {
 
+class Level;
+
 class ObjectWidget : public QTreeWidget
 {
 	Q_OBJECT;
@@ -17,7 +19,8 @@ public:
 	ObjectWidget (QWidget* parent);
 	
 	ObjectHandle getObject() const { return m_object; }
-	
+	void setLevel(std::shared_ptr<Level> lvl) { m_level = lvl; }
+
 public slots:
 	void setObject(ObjectHandle h);
 	void updateObject(ObjectHandle h);
@@ -38,6 +41,8 @@ private:
 	VectorWidget<Vector3>* m_position, *m_rotation, *m_scale;
 	QLineEdit* m_name;
 	QCheckBox* m_active;
+
+	std::shared_ptr<Level> m_level = nullptr;
 };
 
 }

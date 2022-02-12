@@ -3,6 +3,7 @@
 #include "ColorButton.h"
 
 #include <Log.h>
+#include <Level.h>
 
 #include <QFileDialog>
 #include <QLineEdit>
@@ -130,7 +131,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 		
 				prop->set(value == Qt::CheckState::Checked);
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 				
 				emit endUndoableChange();
 			});
@@ -149,7 +150,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(value);
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -162,13 +163,14 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			setItemWidget(propItem, 1, widget = new QSpinBox(this));
 			
 			widget->setSingleStep(1);
-			widget->setRange(std::numeric_limits<unsigned int>::lowest(), std::numeric_limits<unsigned int>::max());
+			// widget->setRange(std::numeric_limits<unsigned int>::lowest(), std::numeric_limits<unsigned int>::max());
+			widget->setRange(0, std::numeric_limits<int>::max());
 			
 			connect(widget, QOverload<int>::of(&QSpinBox::valueChanged), [prop, b, this](int value) mutable {
 				emit beginUndoableChange();
 
-				prop->set(value);
-				b->propertyChanged(prop);
+				prop->set(static_cast<unsigned int>(value));
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -188,7 +190,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(static_cast<float>(value));
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -204,7 +206,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(widget->value());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -220,7 +222,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(widget->value());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -236,7 +238,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(widget->value());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 				
 				emit endUndoableChange();
 			});
@@ -252,7 +254,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(color);
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -277,7 +279,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 			connect(widget, &QLineEdit::editingFinished, [prop, b, widget, this] () mutable {
 				emit beginUndoableChange();
 				prop->set(widget->text().toStdString());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 				emit endUndoableChange();
 			});
 
@@ -292,7 +294,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 
 				widget->setText(value);
 				prop->set(value.toStdString());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});
@@ -308,7 +310,7 @@ QTreeWidgetItem* ObjectWidget::createBehavior(Behavior* b)
 				emit beginUndoableChange();
 
 				prop->set(widget->text().toStdString());
-				b->propertyChanged(prop);
+				b->propertyChanged(prop, *m_level);
 
 				emit endUndoableChange();
 			});

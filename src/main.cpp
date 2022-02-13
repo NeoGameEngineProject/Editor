@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 //#endif
 
 	QSurfaceFormat::setDefaultFormat(format);
-	abort();
+
 	try
 	{	
 		MainWindow w;

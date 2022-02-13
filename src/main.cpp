@@ -14,8 +14,11 @@
 #include <BinaryScene.h>
 #include <glTFScene.h>
 
+#include <CoreDump.h>
+
 int main(int argc, char *argv[])
 {
+	Neo::RegisterCrashHandler("NeoEditor");
 	Neo::ThreadPool::start();
 	
 	Neo::BinaryScene binLoader;
@@ -65,7 +68,7 @@ int main(int argc, char *argv[])
 //#endif
 
 	QSurfaceFormat::setDefaultFormat(format);
-	
+	abort();
 	try
 	{	
 		MainWindow w;

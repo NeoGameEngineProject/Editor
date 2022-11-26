@@ -1,3 +1,8 @@
+cmake_policy(SET CMP0081 OLD)
+cmake_policy(SET CMP0015 NEW)
+cmake_policy(SET CMP0020 NEW)
+cmake_policy(SET CMP0003 NEW)
+
 project(NeoEditor C CXX)
 cmake_minimum_required(VERSION 3.12.4)
 
@@ -55,7 +60,7 @@ set(CMAKE_MACOSX_RPATH TRUE)
 
 set(NO_DOCS FALSE)
 set(NO_TESTGAME TRUE)
-set(NO_TESTS FALSE)
+set(NO_TESTS FALSE CACHE BOOL "")
 set(OpenGL_GL_PREFERENCE LEGACY)
 
 set(ENABLE_OPENGL_RENDERER ON CACHE BOOL "" FORCE)
@@ -87,6 +92,8 @@ set(QT_SCHEMA_DIR "${CMAKE_SOURCE_DIR}/lqt-external/generator/schema" CACHE STRI
 
 add_subdirectory(lqt-external EXCLUDE_FROM_ALL)
 add_dependencies(qtcore luajit-build)
+add_dependencies(qtwidgets luajit-build)
+add_dependencies(qtgui luajit-build)
 
 ## Because it uses STL features which were removed in 17
 set_property(TARGET cpptoxml PROPERTY CXX_STANDARD 11)
